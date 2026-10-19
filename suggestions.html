@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Предложка</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/suggestions.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/report-modal.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+  </head>
+  <body>
+    <div id="site-nav"></div>
+
+    <section class="page-header">
+      <span class="badge"><span class="dot"></span> Общая предложка</span>
+      <h1>Предложка</h1>
+      <p class="lead">
+        Кидай, что стоит посмотреть: фильмы, аниме, сериалы, мультики, видосы с
+        ютуба, тиктоки, интересные новости. Голосуйте за лучшее.
+      </p>
+      <div class="suggest-add-wrap">
+        <button class="btn btn-primary btn-lg" id="open-suggest-form">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Предложить
+        </button>
+      </div>
+    </section>
+
+    <section class="suggest-form-wrap" id="suggest-form-wrap" hidden>
+      <form class="suggest-form" id="suggest-form">
+        <div class="suggest-form-head">
+          <h2>Что предложить?</h2>
+          <button
+            type="button"
+            class="suggest-form-close"
+            id="close-suggest-form"
+            aria-label="Закрыть"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="suggest-form-msg" id="suggest-msg"></div>
+
+        <label class="suggest-label">Тип</label>
+        <div class="suggest-types" id="suggest-types"></div>
+
+        <label class="suggest-label" for="suggest-title">Название *</label>
+        <input
+          type="text"
+          id="suggest-title"
+          name="title"
+          maxlength="200"
+          required
+          placeholder="Например: Интерстеллар, Атака титанов, тот видос с козой…"
+        />
+
+        <label class="suggest-label" for="suggest-url"
+          >Ссылка (необязательно)</label
+        >
+        <input
+          type="url"
+          id="suggest-url"
+          name="url"
+          maxlength="500"
+          placeholder="https://…"
+        />
+
+        <label class="suggest-label" for="suggest-comment"
+          >Почему стоит глянуть?</label
+        >
+        <textarea
+          id="suggest-comment"
+          name="comment"
+          maxlength="1000"
+          rows="4"
+          placeholder="Пара слов: чем зацепило, кому зайдёт, зачем смотреть…"
+        ></textarea>
+
+        <div class="suggest-form-foot">
+          <button type="submit" class="btn btn-primary">Отправить</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="controls">
+      <div class="filters" id="filters"></div>
+      <div class="sort" id="sort">
+        <button class="sort-btn active" data-sort="new">Новые</button>
+        <button class="sort-btn" data-sort="popular">Популярные</button>
+      </div>
+    </div>
+
+    <main class="suggest-feed" id="suggest-feed"></main>
+
+    <div class="empty-state" id="empty-state" hidden>
+      <span class="empty-emoji">🫧</span>
+      <p>Пока никто ничего не предложил. Будь первым!</p>
+    </div>
+
+    <div id="site-footer"></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/posts.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/report-modal.js"></script>
+    <script src="js/suggestions.js"></script>
+  </body>
+</html>

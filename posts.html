@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Посты — z1genxsis8c</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/posts.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/report-modal.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+  </head>
+  <body>
+    <div id="site-nav"></div>
+
+    <section class="page-header">
+      <span class="badge"><span class="dot"></span> Личный дневник</span>
+      <h1>Посты</h1>
+      <p class="lead">
+        Всё в одном месте: код, игры, рассказы. Ищи, фильтруй и читай.
+      </p>
+    </section>
+
+    <div class="search-wrap">
+      <div class="search-field">
+        <svg
+          class="search-icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          id="search"
+          placeholder="Поиск по названию, автору или тегу…"
+        />
+        <button
+          class="search-clear"
+          id="search-clear"
+          aria-label="Очистить"
+          hidden
+        >
+          ×
+        </button>
+      </div>
+      <span class="search-hint">Поиск по пользователям появится позже</span>
+    </div>
+
+    <div class="controls">
+      <div class="filters" id="filters"></div>
+
+      <div class="controls-right">
+        <div class="sort" id="sort">
+          <button class="sort-btn active" data-sort="new">Новые</button>
+          <button class="sort-btn" data-sort="popular">Популярные</button>
+          <button class="sort-btn" data-sort="views">Просмотры</button>
+          <button class="sort-btn" data-sort="bookmarks">🔖 Закладки</button>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          id="create-post-btn"
+          style="padding: 10px 20px; font-size: 14px"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="margin-right: 6px"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Создать пост
+        </button>
+      </div>
+    </div>
+
+    <main class="posts-feed" id="posts-feed"></main>
+
+    <div class="empty-state" id="empty-state" hidden>
+      <span class="empty-emoji">🫧</span>
+      <p>Ничего не нашлось. Попробуй изменить запрос или фильтр.</p>
+    </div>
+
+    <!-- Модалка просмотра поста -->
+    <div class="modal" id="modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <article class="modal-window">
+        <button class="modal-close" data-close aria-label="Закрыть">×</button>
+        <div class="modal-body" id="modal-body"></div>
+      </article>
+    </div>
+
+    <!-- Модалка создания поста -->
+    <div class="modal" id="create-post-modal" hidden>
+      <div class="modal-backdrop" data-close-create></div>
+      <article class="modal-window" style="max-width: 600px">
+        <button class="modal-close" data-close-create aria-label="Закрыть">
+          ×
+        </button>
+        <div class="modal-body" style="padding-top: 30px">
+          <h2 class="modal-title" style="margin-bottom: 20px">Новый пост</h2>
+
+          <form id="create-post-form" class="auth-form" style="gap: 16px">
+            <div class="auth-msg" id="post-msg"></div>
+
+            <div class="field">
+              <label>Заголовок *</label>
+              <input
+                type="text"
+                name="title"
+                required
+                placeholder="О чём пост?"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="field">
+              <label>Категория</label>
+              <select name="category" class="modal-form-select">
+                <option value="story">Рассказ</option>
+                <option value="code">Код</option>
+                <option value="game">Игра</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Теги (через запятую)</label>
+              <input
+                type="text"
+                name="tags"
+                placeholder="javascript, cs2, мысли"
+              />
+            </div>
+
+            <div class="field">
+              <label>Краткое описание (для карточки)</label>
+              <input
+                type="text"
+                name="excerpt"
+                placeholder="Пара слов для превью (если пусто, возьмётся начало текста)"
+                maxlength="200"
+              />
+            </div>
+
+            <div class="field">
+              <label>Текст поста *</label>
+              <textarea
+                name="body"
+                required
+                rows="6"
+                class="modal-form-textarea"
+                placeholder="Пиши здесь..."
+              ></textarea>
+            </div>
+
+            <button type="submit" class="auth-submit" style="margin-top: 10px">
+              Опубликовать
+            </button>
+          </form>
+        </div>
+      </article>
+    </div>
+
+    <!-- Модалка редактирования поста -->
+    <div class="modal" id="edit-post-modal" hidden>
+      <div class="modal-backdrop" data-close-edit></div>
+      <article class="modal-window" style="max-width: 600px">
+        <button class="modal-close" data-close-edit aria-label="Закрыть">
+          ×
+        </button>
+        <div class="modal-body" style="padding-top: 30px">
+          <h2 class="modal-title" style="margin-bottom: 20px">
+            Редактировать пост
+          </h2>
+
+          <form id="edit-post-form" class="auth-form" style="gap: 16px">
+            <div class="auth-msg" id="edit-post-msg"></div>
+
+            <div class="field">
+              <label>Заголовок *</label>
+              <input
+                type="text"
+                name="title"
+                required
+                placeholder="О чём пост?"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="field">
+              <label>Категория</label>
+              <select name="category" class="modal-form-select">
+                <option value="story">Рассказ</option>
+                <option value="code">Код</option>
+                <option value="game">Игра</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Теги (через запятую)</label>
+              <input
+                type="text"
+                name="tags"
+                placeholder="javascript, cs2, мысли"
+              />
+            </div>
+
+            <div class="field">
+              <label>Краткое описание (для карточки)</label>
+              <input
+                type="text"
+                name="excerpt"
+                placeholder="Пара слов для превью (если пусто, возьмётся начало текста)"
+                maxlength="200"
+              />
+            </div>
+
+            <div class="field">
+              <label>Текст поста *</label>
+              <textarea
+                name="body"
+                required
+                rows="6"
+                class="modal-form-textarea"
+                placeholder="Пиши здесь..."
+              ></textarea>
+            </div>
+
+            <div class="edit-post-actions">
+              <button type="submit" class="auth-submit">Сохранить</button>
+              <button type="button" class="btn-cancel" id="cancel-edit-post">
+                Отмена
+              </button>
+            </div>
+          </form>
+        </div>
+      </article>
+    </div>
+
+    <div id="site-footer"></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/posts.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/report-modal.js"></script>
+    <script src="js/comments.js"></script>
+    <script src="js/posts-page.js"></script>
+  </body>
+</html>

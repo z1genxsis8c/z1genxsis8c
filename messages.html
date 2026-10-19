@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Сообщения</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/messages.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+  </head>
+  <body class="tg-body">
+    <div id="site-nav"></div>
+
+    <main class="tg-layout">
+      <aside class="tg-sidebar">
+        <div class="tg-sidebar-header">
+          <div class="tg-search">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="Поиск" />
+          </div>
+          <button class="tg-new-chat" title="Создать чат">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="tg-chat-list" id="tg-chat-list"></div>
+      </aside>
+
+      <section class="tg-chat-window" id="tg-chat-window">
+        <div class="tg-empty-chat" id="tg-empty-chat">
+          <div class="tg-empty-icon">✈️</div>
+          <p>Выберите чат, чтобы начать общение</p>
+        </div>
+
+        <div class="tg-active-chat" id="tg-active-chat" hidden>
+          <header class="tg-chat-header">
+            <button class="tg-back-btn" id="tg-back-btn">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <div class="tg-chat-info">
+              <span class="tg-chat-title" id="tg-chat-title">Название</span>
+              <span class="tg-chat-status" id="tg-chat-status">в сети</span>
+            </div>
+            <button
+              class="tg-settings-btn"
+              id="open-settings-btn"
+              title="Настройки"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                />
+              </svg>
+            </button>
+          </header>
+
+          <div class="tg-messages" id="tg-messages"></div>
+
+          <div class="tg-input-area" id="tg-input-area">
+            <div class="tg-block-notice" id="tg-block-notice" hidden>
+              Вы не можете отправлять сообщения в этот чат.
+            </div>
+
+            <form id="tg-group-form" class="tg-input-form" hidden>
+              <button type="button" class="tg-attach-btn" id="tg-group-attach">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                  />
+                </svg>
+              </button>
+              <input
+                type="text"
+                id="tg-group-input"
+                placeholder="Написать сообщение..."
+                autocomplete="off"
+              />
+              <button type="submit" class="tg-send-btn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+
+            <form id="tg-channel-form" class="tg-input-form" hidden>
+              <button
+                type="button"
+                class="tg-attach-btn"
+                id="tg-channel-attach"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+                  />
+                </svg>
+              </button>
+              <input
+                type="text"
+                id="tg-channel-input"
+                placeholder="Написать пост..."
+                autocomplete="off"
+              />
+              <button type="submit" class="tg-send-btn">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+
+            <div class="tg-subscriber-notice" id="tg-subscriber-notice" hidden>
+              Вы подписаны на канал. Только администраторы могут публиковать
+              посты.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <input type="file" id="tg-group-file" accept="image/*" hidden />
+    <input type="file" id="tg-channel-file" accept="image/*" hidden />
+
+    <!-- Модалка создания чата -->
+    <div class="tg-modal" id="new-chat-modal" hidden>
+      <div class="tg-modal-backdrop" data-close></div>
+      <div class="tg-modal-window">
+        <div class="tg-modal-header">
+          <h2>Новое сообщение</h2>
+          <button class="tg-modal-close" data-close>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="tg-modal-tabs">
+          <button class="tg-tab active" data-type="private">Личное</button>
+          <button class="tg-tab" data-type="group">Группа</button>
+          <button class="tg-tab" data-type="channel">Канал</button>
+        </div>
+
+        <div class="tg-modal-body">
+          <label class="tg-avatar-upload">
+            <input type="file" id="chat-avatar-input" accept="image/*" hidden />
+            <div class="tg-avatar-preview" id="chat-avatar-preview">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                ></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+          </label>
+
+          <input
+            type="text"
+            id="chat-name-input"
+            class="tg-modal-input"
+            placeholder="Название"
+            maxlength="50"
+          />
+
+          <div class="tg-modal-search-wrap">
+            <input
+              type="text"
+              id="chat-member-search"
+              class="tg-modal-input"
+              placeholder="Найти пользователя"
+              autocomplete="off"
+            />
+            <div
+              class="tg-search-dropdown"
+              id="chat-search-dropdown"
+              hidden
+            ></div>
+          </div>
+
+          <div class="tg-selected-members" id="chat-selected-members"></div>
+        </div>
+
+        <div class="tg-modal-footer">
+          <button class="tg-btn-primary" id="create-chat-btn">Создать</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модалка настроек -->
+    <div class="tg-modal" id="settings-modal" hidden>
+      <div class="tg-modal-backdrop" data-close-settings></div>
+      <div class="tg-modal-window">
+        <div class="tg-modal-header">
+          <h2 id="settings-title">Настройки</h2>
+          <button class="tg-modal-close" data-close-settings>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="tg-modal-body">
+          <div id="settings-block-wrap" hidden>
+            <button class="tg-btn-danger" id="block-user-btn">
+              Заблокировать пользователя
+            </button>
+            <p style="font-size: 12px; color: var(--muted); margin-top: 8px">
+              Пользователь не сможет отправлять вам сообщения.
+            </p>
+          </div>
+
+          <div
+            id="settings-delete-wrap"
+            hidden
+            style="
+              margin-top: 16px;
+              border-top: 1px solid var(--border);
+              padding-top: 16px;
+            "
+          >
+            <button class="tg-btn-danger" id="delete-chat-btn">
+              Удалить чат
+            </button>
+          </div>
+
+          <div
+            id="settings-members-wrap"
+            hidden
+            style="
+              margin-top: 16px;
+              border-top: 1px solid var(--border);
+              padding-top: 16px;
+            "
+          >
+            <h3 style="font-size: 14px; margin-bottom: 12px">Участники</h3>
+            <input
+              type="text"
+              id="settings-member-search"
+              class="tg-modal-input"
+              placeholder="Поиск участника..."
+              style="margin-bottom: 12px"
+            />
+            <div
+              id="settings-members-list"
+              class="tg-settings-members-list"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модалка добавления участника -->
+    <div class="tg-modal" id="add-member-modal" hidden style="z-index: 1100">
+      <div class="tg-modal-backdrop" data-close-add></div>
+      <div class="tg-modal-window" style="max-width: 350px">
+        <div class="tg-modal-header">
+          <h2>Добавить участника</h2>
+          <button class="tg-modal-close" data-close-add>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="tg-modal-body">
+          <div class="tg-modal-search-wrap">
+            <input
+              type="text"
+              id="add-member-search"
+              class="tg-modal-input"
+              placeholder="Поиск по нику"
+              autocomplete="off"
+            />
+            <div
+              class="tg-search-dropdown"
+              id="add-member-dropdown"
+              hidden
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модалка комментариев к посту -->
+    <div class="tg-modal" id="comments-modal" hidden>
+      <div class="tg-modal-backdrop" data-close-comments></div>
+      <div class="tg-modal-window tg-comments-window">
+        <div class="tg-modal-header">
+          <h2>Комментарии</h2>
+          <button class="tg-modal-close" data-close-comments>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="tg-comments-list" id="comments-list"></div>
+        <div class="tg-comments-input">
+          <form id="comment-form" class="tg-input-form">
+            <input
+              type="text"
+              id="comment-input"
+              placeholder="Написать комментарий..."
+              autocomplete="off"
+            />
+            <button type="submit" class="tg-send-btn">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="site-footer"></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/posts.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/messages.js"></script>
+  </body>
+</html>

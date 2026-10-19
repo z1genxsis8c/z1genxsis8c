@@ -1,0 +1,495 @@
+/* ============================================================
+   АВТОРИЗАЦИЯ
+   ============================================================ */
+
+/* ---------- Кнопка в навбаре (не залогинен) ---------- */
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.3s ease;
+}
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(139, 92, 246, 0.55);
+}
+
+/* ---------- Меню пользователя (залогинен) ---------- */
+.user-menu {
+  position: relative;
+}
+.user-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 5px;
+  border-radius: 100px;
+  background: rgba(20, 12, 35, 0.7);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+.user-menu-btn:hover {
+  border-color: rgba(167, 139, 250, 0.5);
+  background: rgba(28, 17, 48, 0.85);
+}
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.user-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-menu-btn .caret {
+  opacity: 0.6;
+  transition: transform 0.25s ease;
+}
+.user-menu.open .caret {
+  transform: rotate(180deg);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(20, 12, 35, 0.95);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  z-index: 200;
+}
+.user-menu.open .user-dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.user-dropdown .menu-head {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.user-dropdown .menu-username {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.user-dropdown .menu-email {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  word-break: break-all;
+}
+.user-dropdown .menu-role {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--purple-bright);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.user-dropdown a,
+.user-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background: rgba(139, 92, 246, 0.12);
+}
+.user-dropdown button.danger:hover {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+.user-dropdown svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   МОДАЛКА АВТОРИЗАЦИИ
+   ============================================================ */
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.auth-modal[hidden] {
+  display: none;
+}
+
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 3, 12, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.auth-modal.open .auth-backdrop {
+  opacity: 1;
+}
+
+.auth-window {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #1a1029 0%, #120b1f 100%);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(167, 139, 250, 0.08) inset;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(24px) scale(0.97);
+  transition:
+    opacity 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.auth-modal.open .auth-window {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.auth-body {
+  padding: 36px 32px 32px;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+.auth-body::-webkit-scrollbar {
+  width: 8px;
+}
+.auth-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.auth-body::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.25);
+  border-radius: 100px;
+}
+
+.auth-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+.auth-close:hover {
+  background: rgba(139, 92, 246, 0.3);
+  transform: rotate(90deg);
+}
+
+/* ---------- Заголовки ---------- */
+.auth-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #fff 40%, var(--purple-bright) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ---------- Вкладки Вход / Регистрация ---------- */
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 100px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 100px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease;
+}
+.auth-tab:hover {
+  color: var(--text);
+}
+.auth-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+/* ---------- Поля формы ---------- */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+.field input {
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: rgba(10, 7, 16, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+.field input:focus {
+  border-color: rgba(167, 139, 250, 0.6);
+  background: rgba(10, 7, 16, 0.85);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
+}
+.field input::placeholder {
+  color: rgba(162, 155, 184, 0.5);
+}
+
+.field input.invalid {
+  border-color: rgba(248, 113, 113, 0.6);
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.1);
+}
+.field .field-error {
+  font-size: 12px;
+  color: #f87171;
+  margin-top: -2px;
+  display: none;
+}
+.field.invalid .field-error {
+  display: block;
+}
+
+/* ---------- Кнопки ---------- */
+.auth-submit {
+  margin-top: 8px;
+  padding: 14px 20px;
+  border-radius: 100px;
+  border: none;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.3s ease,
+    opacity 0.2s ease;
+}
+.auth-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.55);
+}
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-link {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+.auth-link:hover {
+  color: var(--purple-bright);
+}
+
+/* ---------- Сообщения ---------- */
+.auth-msg {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  display: none;
+}
+.auth-msg.show {
+  display: block;
+}
+.auth-msg.error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #fca5a5;
+}
+.auth-msg.success {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: #86efac;
+}
+.auth-msg.info {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--purple-bright);
+}
+
+/* ---------- Вкладка с шагами (для сброса пароля) ---------- */
+.auth-step {
+  display: none;
+}
+.auth-step.active {
+  display: block;
+  animation: riseIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ---------- Бейдж "код" ---------- */
+.code-badge {
+  display: inline-block;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px dashed rgba(167, 139, 250, 0.4);
+  color: var(--purple-bright);
+  margin: 12px 0;
+}
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 720px) {
+  .auth-btn .auth-btn-text {
+    display: none;
+  }
+  .auth-btn {
+    padding: 9px 12px;
+  }
+  .user-menu-btn {
+    padding: 4px;
+  }
+  .user-menu-btn .user-name,
+  .user-menu-btn .caret {
+    display: none;
+  }
+  .auth-body {
+    padding: 28px 22px 24px;
+  }
+  .auth-title {
+    font-size: 22px;
+  }
+}

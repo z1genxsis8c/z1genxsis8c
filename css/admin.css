@@ -1,0 +1,544 @@
+/* ============================================================
+   АДМИН-ПАНЕЛЬ
+   ============================================================ */
+
+.admin-denied {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 60px 32px;
+  text-align: center;
+  color: var(--muted);
+  background: rgba(20, 12, 35, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+}
+.admin-denied h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 12px 0 8px;
+}
+
+.admin {
+  position: relative;
+  z-index: 1;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 80px 60px;
+}
+
+/* ---------- Статистика ---------- */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: rgba(20, 12, 35, 0.6);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #fff 30%, var(--purple-bright) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.stat-label {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Вкладки ---------- */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-tab {
+  padding: 12px 18px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.25s ease;
+}
+.admin-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: transparent;
+  transition: background 0.25s ease;
+}
+.admin-tab:hover {
+  color: var(--text);
+}
+.admin-tab.active {
+  color: var(--text);
+}
+.admin-tab.active::after {
+  background: var(--purple-bright);
+}
+
+.tab-count {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--purple-bright);
+  font-weight: 700;
+}
+.admin-tab.active .tab-count {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+}
+
+/* ---------- Список ---------- */
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.user-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: rgba(20, 12, 35, 0.6);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+.user-row:hover {
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateY(-2px);
+}
+.user-row.banned {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(35, 15, 20, 0.6);
+}
+
+.user-row .user-avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+}
+
+.user-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.user-row-name-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.user-row-username {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.user-row-email {
+  font-size: 13px;
+  color: var(--purple-bright);
+  word-break: break-all;
+}
+.user-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  align-items: center;
+}
+
+.user-row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ---------- Кнопки-мини ---------- */
+.btn-mini {
+  padding: 8px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+.btn-mini:hover {
+  transform: translateY(-1px);
+}
+.btn-mini.approve {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+}
+.btn-mini.approve:hover {
+  background: rgba(74, 222, 128, 0.12);
+}
+.btn-mini.reject {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.4);
+}
+.btn-mini.reject:hover {
+  background: rgba(248, 113, 113, 0.12);
+}
+.btn-mini.warn {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+}
+.btn-mini.warn:hover {
+  background: rgba(251, 191, 36, 0.12);
+}
+.btn-mini.danger {
+  color: #f87171;
+}
+.btn-mini.danger:hover {
+  background: rgba(248, 113, 113, 0.12);
+}
+
+/* ---------- Статусы ---------- */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.status-chip.pending {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.status-chip.approved,
+.status-chip.resolved {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+.status-chip.rejected,
+.status-chip.dismissed,
+.status-chip.banned {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+/* ---------- Редактор роли ---------- */
+.role-editor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.role-editor label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.role-select {
+  padding: 6px 30px 6px 12px;
+  border-radius: 100px;
+  background-color: rgba(10, 7, 16, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.role-select:focus {
+  border-color: rgba(167, 139, 250, 0.6);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+.role-select.saved {
+  border-color: rgba(74, 222, 128, 0.6);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+.btn-mini.save-role {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--purple-bright);
+  border-color: rgba(167, 139, 250, 0.4);
+}
+.btn-mini.save-role:hover {
+  background: rgba(139, 92, 246, 0.15);
+  color: #fff;
+}
+
+/* ---------- Жалобы ---------- */
+.report-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: rgba(20, 12, 35, 0.6);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+.report-row:hover {
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateY(-2px);
+}
+.report-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.report-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.report-type {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--purple-bright);
+}
+.report-target {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  word-break: break-word;
+}
+.report-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.report-meta b {
+  color: var(--text);
+  font-weight: 600;
+}
+.report-comment {
+  margin-top: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: rgba(10, 7, 16, 0.5);
+  border-left: 3px solid rgba(167, 139, 250, 0.4);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.report-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+/* ---------- Адаптив ---------- */
+@media (max-width: 1100px) {
+  .admin {
+    padding: 0 48px 60px;
+  }
+}
+@media (max-width: 720px) {
+  .admin {
+    padding: 0 20px 40px;
+  }
+  .user-row {
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+  .user-row-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+  .user-row-actions .btn-mini {
+    flex: 1;
+    justify-content: center;
+  }
+  .report-row {
+    grid-template-columns: 1fr;
+  }
+  .report-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .report-actions .btn-mini {
+    flex: 1;
+    justify-content: center;
+  }
+  .admin-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .admin-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-tab {
+    white-space: nowrap;
+  }
+}
+
+/* ============================================================
+   ИЕРАРХИЯ РОЛЕЙ: disabled-состояние и «замок» редактора
+   ============================================================ */
+
+/* Заблокированные кнопки — визуально приглушены */
+.btn-mini:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  transform: none !important;
+}
+.btn-mini:disabled:hover {
+  background: transparent;
+  border-color: var(--border);
+  color: inherit;
+}
+.btn-mini.approve:disabled {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.25);
+}
+.btn-mini.reject:disabled {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.25);
+}
+.btn-mini.warn:disabled {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.25);
+}
+.btn-mini.danger:disabled {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+/* Заблокированные опции в <select> */
+.role-select option:disabled {
+  color: rgba(162, 155, 184, 0.35);
+  font-style: italic;
+}
+
+/* Read-only редактор роли (когда нет прав) */
+.role-editor-locked {
+  opacity: 0.85;
+}
+.role-locked-hint {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px dashed rgba(167, 139, 250, 0.25);
+}
+.role-chip-static {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(139, 92, 246, 0.14);
+  color: var(--purple-bright);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+.role-chip-static.owner,
+.role-chip-static.admin {
+  background: linear-gradient(
+    135deg,
+    rgba(232, 121, 249, 0.18),
+    rgba(139, 92, 246, 0.18)
+  );
+  color: #e879f9;
+  border-color: rgba(232, 121, 249, 0.4);
+}
+.role-chip-static.moderator {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+/* Status-chip новой роли в мета-строке */
+.status-chip.role {
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+.status-chip.self {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}

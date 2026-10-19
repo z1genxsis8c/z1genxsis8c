@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Админ-панель</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/admin.css" />
+    <link rel="stylesheet" href="css/toast.css" />
+  </head>
+  <body>
+    <div id="site-nav"></div>
+
+    <section class="page-header">
+      <span class="badge"><span class="dot"></span> Только для админа</span>
+      <h1>Панель админа</h1>
+      <p class="lead">Заявки, жалобы и предложка — всё в одном месте.</p>
+    </section>
+
+    <div class="admin-denied" id="admin-denied" hidden>
+      <span class="empty-emoji">🔒</span>
+      <h2>Доступ только для администратора</h2>
+      <p>Войди под аккаунтом админа, чтобы увидеть эту страницу.</p>
+      <a href="index.html" class="btn btn-primary" style="margin-top: 20px"
+        >На главную</a
+      >
+    </div>
+
+    <main class="admin" id="admin-content" hidden>
+      <div class="admin-stats" id="admin-stats"></div>
+
+      <div class="admin-tabs" id="admin-tabs">
+        <button class="admin-tab active" data-tab="pending">
+          На рассмотрении <span class="tab-count" id="count-pending">0</span>
+        </button>
+        <button class="admin-tab" data-tab="approved">
+          Одобренные <span class="tab-count" id="count-approved">0</span>
+        </button>
+        <button class="admin-tab" data-tab="rejected">
+          Отклонённые <span class="tab-count" id="count-rejected">0</span>
+        </button>
+        <button class="admin-tab" data-tab="reports">
+          Жалобы <span class="tab-count" id="count-reports">0</span>
+        </button>
+        <button class="admin-tab" data-tab="suggestions">
+          Предложка <span class="tab-count" id="count-suggestions">0</span>
+        </button>
+      </div>
+
+      <div class="admin-list" id="admin-list"></div>
+
+      <div class="empty-state" id="admin-empty" hidden>
+        <span class="empty-emoji">🫧</span>
+        <p>Здесь пока пусто.</p>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/posts.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/admin.js"></script>
+  </body>
+</html>
