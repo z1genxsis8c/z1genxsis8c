@@ -94,11 +94,11 @@
   /* ---------- Открытие ---------- */
   function open(file, onSave) {
     if (!file || !file.type.startsWith("image/")) {
-      alert("Можно загрузить только изображение");
+      window.Toast.error("Можно загрузить только изображение");
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      alert("Файл больше 8 МБ");
+      window.Toast.error("Файл больше 8 МБ");
       return;
     }
 
@@ -145,7 +145,7 @@
       };
       imgEl.src = e.target.result;
     };
-    reader.onerror = () => alert("Ошибка чтения файла");
+    reader.onerror = () => window.Toast.error("Ошибка чтения файла");
     reader.readAsDataURL(file);
 
     /* --- Обработчики (пере-навешиваем каждый раз, чтобы ссылаться на свежий state) --- */

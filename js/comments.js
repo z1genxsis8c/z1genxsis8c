@@ -44,7 +44,7 @@
       if (window.Auth && window.Auth.openAuth) {
         // попытаться открыть модалку входа, если есть
       }
-      alert("Войди в аккаунт, чтобы участвовать в обсуждении.");
+      window.Toast.info("Войди в аккаунт, чтобы участвовать в обсуждении.");
       return false;
     }
     return true;
@@ -266,7 +266,7 @@
     const text = ta.value.trim();
     if (!text) return;
     const res = window.Auth.addComment(currentPostId, text);
-    if (!res.ok) return alert(res.error);
+    if (!res.ok) return window.Toast.error(res.error);
     ta.value = "";
     render();
   }
@@ -279,7 +279,7 @@
     const text = ta.value.trim();
     if (!text) return;
     const res = window.Auth.addComment(currentPostId, text, parentId);
-    if (!res.ok) return alert(res.error);
+    if (!res.ok) return window.Toast.error(res.error);
     replyTo = null;
     render();
   }

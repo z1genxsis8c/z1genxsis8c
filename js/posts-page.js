@@ -391,8 +391,7 @@
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!window.Auth.getCurrentUser()) {
-          if (window.Toast) window.Toast.error("Войди, чтобы сохранять посты");
-          else alert("Войди, чтобы сохранять посты");
+          window.Toast.info("Войди, чтобы сохранять посты");
           return;
         }
         const res = window.Auth.toggleBookmark(Number(btn.dataset.bookmark));
@@ -580,8 +579,7 @@
           renderFeed();
           if (window.Toast) window.Toast.success("Пост удалён");
         } else {
-          if (window.Toast) window.Toast.error(res.error);
-          else alert(res.error);
+          window.Toast.error(res.error);
         }
       });
     }
@@ -624,8 +622,7 @@
   /* ---------- Модалка создания ---------- */
   createBtn.addEventListener("click", () => {
     if (!window.Auth.getCurrentUser()) {
-      if (window.Toast) window.Toast.error("Войдите, чтобы создавать посты");
-      else alert("Войдите, чтобы создавать посты");
+      window.Toast.info("Войдите, чтобы создавать посты");
       return;
     }
     createForm.reset();

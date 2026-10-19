@@ -260,7 +260,7 @@
     const likeBtn = document.getElementById("like-btn");
     likeBtn?.addEventListener("click", () => {
       if (!me) {
-        alert("Войди, чтобы поставить лайк.");
+        window.Toast.info("Войди, чтобы поставить лайк.");
         return;
       }
       if (me.id === target.id) return;

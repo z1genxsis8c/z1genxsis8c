@@ -83,7 +83,7 @@
   function open(options) {
     const me = window.Auth && window.Auth.getCurrentUser();
     if (!me) {
-      alert("Войди в аккаунт, чтобы пожаловаться.");
+      window.Toast.info("Войди в аккаунт, чтобы пожаловаться.");
       return;
     }
 

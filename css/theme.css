@@ -1,0 +1,195 @@
+/* ============================================================
+   theme.css — единая тема поверх постраничных стилей.
+   Подключается ПОСЛЕДНИМ: приводит карточки, поля, кнопки
+   и модалки всех страниц к приглушённой палитре style.css.
+   ============================================================ */
+
+/* ---------- Карточки и секции ---------- */
+.post-card,
+.suggest-card,
+.profile-header,
+.profile-section,
+.stat-card,
+.user-row,
+.report-row,
+.admin-denied,
+.comments-empty,
+.tg-sidebar {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  box-shadow: none;
+}
+.post-card,
+.suggest-card {
+  border-radius: var(--radius);
+  transition:
+    transform 0.3s var(--ease),
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+.post-card:hover,
+.suggest-card:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border-strong) !important;
+  transform: translateY(-2px);
+}
+
+/* ---------- Модальные окна ---------- */
+.auth-window,
+.report-window,
+.cropper-window,
+.suggest-form,
+.tg-modal-window {
+  background: var(--elevated) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.75) !important;
+}
+.auth-backdrop,
+.tg-modal-backdrop,
+.report-backdrop,
+.cropper-backdrop {
+  background: rgba(8, 6, 13, 0.72) !important;
+}
+
+/* Заголовки без «кричащего» градиента */
+.auth-title,
+.cropper-title,
+.suggest-form-head h2,
+.stat-value {
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: var(--text-strong) !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+/* ---------- Поля ввода ---------- */
+.field input,
+.modal-form-select,
+.modal-form-textarea,
+.comment-reply-form textarea,
+.profile-edit textarea,
+.suggest-form textarea,
+.report-form textarea,
+.report-comment,
+.tg-search,
+.tg-input-form,
+.tg-modal-input,
+.tg-comments-input,
+.tg-block-notice,
+.tg-settings-member,
+.avatar-uploader {
+  background: var(--input-bg) !important;
+  border-color: var(--border-strong) !important;
+}
+.field input:focus,
+.modal-form-select:focus,
+.modal-form-textarea:focus,
+.comment-reply-form textarea:focus,
+.profile-edit textarea:focus,
+.suggest-form textarea:focus,
+.report-form textarea:focus,
+.tg-modal-input:focus {
+  background: var(--input-bg) !important;
+  border-color: rgba(180, 160, 250, 0.45) !important;
+  box-shadow: 0 0 0 4px rgba(139, 108, 240, 0.1) !important;
+  outline: none;
+}
+.modal-form-select option {
+  background: var(--elevated);
+}
+.field input::placeholder,
+.modal-form-textarea::placeholder,
+.comment-reply-form textarea::placeholder {
+  color: var(--muted-2);
+}
+
+/* ---------- Основные кнопки: один мягкий градиент ---------- */
+.auth-btn,
+.auth-submit,
+.btn-save,
+.tg-btn-primary,
+.comment-form-foot .btn-save {
+  background: var(--grad) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 24px -12px rgba(116, 87, 224, 0.75) !important;
+}
+.auth-btn {
+  border-radius: 100px;
+}
+
+/* Аватары-заглушки */
+.user-avatar,
+.author-avatar-letter,
+.comment-avatar,
+.comment-form-avatar,
+.suggest-author-avatar,
+.profile-avatar,
+.avatar-preview,
+.tg-chat-avatar {
+  background: var(--grad) !important;
+}
+
+/* Активные вкладки и чипы: мягкая подсветка вместо заливки */
+.auth-tab.active,
+.suggest-type.active,
+.admin-tab.active .tab-count {
+  background: var(--accent-soft) !important;
+  color: var(--text-strong) !important;
+  border-color: rgba(180, 160, 250, 0.35) !important;
+  box-shadow: none !important;
+}
+
+/* Второстепенные кнопки на тёмных подложках */
+.user-menu-btn,
+.profile-like-btn,
+.profile-unban-btn,
+.post-meta-item-lg,
+.post-report-btn-lg,
+.modal-meta-row .react-btn,
+.suggest-type {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+.user-menu-btn:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border-strong) !important;
+}
+.user-menu-btn {
+  border-radius: 100px;
+}
+
+/* Выпадающее меню пользователя */
+.user-dropdown {
+  background: var(--elevated) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.7) !important;
+  border-radius: 16px;
+}
+
+/* ---------- Сообщения ---------- */
+.tg-chat-window {
+  background: rgba(21, 17, 31, 0.6) !important;
+}
+.tg-chat-header,
+.tg-input-area {
+  background: rgba(24, 19, 36, 0.92) !important;
+}
+.tg-msg-row.mine .tg-msg-bubble {
+  background: var(--grad) !important;
+}
+.tg-msg-row.other .tg-msg-bubble,
+.tg-channel-post {
+  background: var(--surface-2) !important;
+}
+
+/* ---------- Тосты ---------- */
+.toast {
+  background: rgba(24, 19, 36, 0.96) !important;
+  border-color: var(--border-strong);
+}
+
+/* Навбар плавающий (88px), профилю нужен отступ сверху */
+.profile {
+  padding-top: calc(var(--nav-h) + 32px);
+}

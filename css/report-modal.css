@@ -1,0 +1,177 @@
+/* ============================================================
+   МОДАЛКА ЖАЛОБЫ (report-modal.js)
+   Кнопка и сообщения берутся из auth.css: .auth-submit, .auth-msg
+   ============================================================ */
+.report-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.report-modal[hidden] {
+  display: none;
+}
+
+.report-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 3, 12, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.report-modal.open .report-backdrop {
+  opacity: 1;
+}
+
+.report-window {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, #1a1029 0%, #120b1f 100%);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(167, 139, 250, 0.08) inset;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(24px) scale(0.97);
+  transition:
+    opacity 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.report-modal.open .report-window {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.report-body {
+  padding: 36px 32px 32px;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.report-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+.report-close:hover {
+  background: rgba(139, 92, 246, 0.3);
+  transform: rotate(90deg);
+}
+
+.report-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.report-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 20px;
+  word-break: break-word;
+}
+
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.report-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.report-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reason-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(139, 92, 246, 0.05);
+  cursor: pointer;
+  font-size: 14px;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+.reason-option:hover {
+  background: rgba(139, 92, 246, 0.12);
+}
+.reason-option:has(input:checked) {
+  border-color: var(--purple-bright);
+  background: rgba(139, 92, 246, 0.18);
+}
+.reason-option input {
+  accent-color: var(--purple);
+}
+
+.report-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(10, 7, 16, 0.6);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s ease;
+}
+.report-form textarea:focus {
+  outline: none;
+  border-color: var(--purple-bright);
+}
+
+.report-close:focus-visible,
+.reason-option:focus-within {
+  outline: 2px solid var(--purple-bright);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .report-body {
+    padding: 28px 20px 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-backdrop,
+  .report-window,
+  .report-close {
+    transition: none;
+  }
+}

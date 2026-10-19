@@ -3,90 +3,143 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d0b14" />
+    <meta
+      name="description"
+      content="z1genxsis8c — личное место для кода, игр, историй и всего, чем хочется поделиться."
+    />
     <title>z1genxsis8c</title>
 
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/home.css" />
     <link rel="stylesheet" href="css/auth.css" />
-    <link rel="stylesheet" href="css/report-modal.css" />
     <link rel="stylesheet" href="css/toast.css" />
+    <link rel="stylesheet" href="css/theme.css" />
   </head>
   <body class="home">
     <div id="site-nav"></div>
 
-    <main class="cover">
-      <div class="cover-ornament top-left"></div>
-      <div class="cover-ornament top-right"></div>
-      <div class="cover-ornament bottom-left"></div>
-      <div class="cover-ornament bottom-right"></div>
+    <main class="home-main">
+      <!-- ============ HERO ============ -->
+      <section class="cover" aria-labelledby="cover-title">
+        <div class="cover-inner">
+          <div class="cover-text">
+            <span class="cover-kicker">
+              <span class="dot" aria-hidden="true"></span>
+              Уютное место для всех
+            </span>
 
-      <div class="cover-inner">
-        <div class="cover-text">
-          <span class="cover-kicker">
-            <span class="line"></span>
-            Уютное место для всех
-            <span class="line"></span>
-          </span>
+            <h1 class="cover-title" id="cover-title">
+              <span class="cover-title-small">привет, я</span>
+              <span class="cover-title-name">z1genxsis8c</span>
+            </h1>
 
-          <h1 class="cover-title">
-            <span class="cover-title-small">привет, я</span>
-            <span class="cover-title-name">z1genxsis8c</span>
-          </h1>
+            <p class="cover-lead">
+              Публикую всё, что хочу: код, что накодил, истории из игр, мысли и
+              просто то, чем хочется поделиться. И предлагаю вам делать то же
+              самое.
+            </p>
 
-          <p class="cover-lead">
-            Публикую всё, что хочу: код, что накодил, истории из игр, мысли и
-            просто то, чем хочется поделиться. И предлагаю вам делать тоже
-            самое.
-          </p>
+            <div class="cover-actions">
+              <a href="posts.html" class="btn btn-primary btn-lg">
+                Читать посты
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </a>
+              <a href="suggestions.html" class="btn btn-ghost btn-lg">Предложить идею</a>
+            </div>
 
-          <div class="cover-actions">
-            <a href="posts.html" class="btn btn-primary btn-lg">
-              Читать посты
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
+            <div class="cover-stats" id="cover-stats"></div>
+          </div>
+
+          <div class="cover-visual">
+            <div class="cover-glow" aria-hidden="true"></div>
+            <div class="cover-frame">
+              <video src="videos/hero.mp4" autoplay loop muted playsinline
+                     preload="auto" aria-hidden="true"></video>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ РАЗДЕЛЫ ============ -->
+      <section class="home-section reveal" aria-labelledby="sections-title">
+        <header class="section-head">
+          <span class="section-kicker">Что здесь есть</span>
+          <h2 id="sections-title">Разделы сайта</h2>
+        </header>
+
+        <div class="feature-grid">
+          <a href="posts.html" class="feature-card" style="--accent: var(--c-code)">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               </svg>
-            </a>
-          </div>
+            </span>
+            <h3>Посты</h3>
+            <p>Код, игры и рассказы. Поиск, фильтры, комментарии и закладки.</p>
+            <span class="feature-link">Открыть →</span>
+          </a>
 
-          <div class="cover-stats" id="cover-stats"></div>
+          <a href="suggestions.html" class="feature-card" style="--accent: var(--c-story)">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18h6" /><path d="M10 22h4" />
+                <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
+              </svg>
+            </span>
+            <h3>Предложка</h3>
+            <p>Советуй фильмы, аниме, видео и новости. Лучшее попадёт в посты.</p>
+            <span class="feature-link">Предложить →</span>
+          </a>
+
+          <a href="messages.html" class="feature-card" style="--accent: var(--c-game)">
+            <span class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            </span>
+            <h3>Сообщения</h3>
+            <p>Личные чаты, группы и каналы прямо на сайте.</p>
+            <span class="feature-link">Написать →</span>
+          </a>
         </div>
+      </section>
 
-        <div class="cover-visual">
-          <div class="cover-glow"></div>
+      <!-- ============ СВЕЖИЕ ПОСТЫ ============ -->
+      <section class="home-section reveal" aria-labelledby="latest-title">
+        <header class="section-head section-head-row">
+          <div>
+            <span class="section-kicker">Недавно</span>
+            <h2 id="latest-title">Свежие посты</h2>
+          </div>
+          <a href="posts.html" class="link-more">Все посты →</a>
+        </header>
+        <div class="home-posts" id="home-latest"></div>
+      </section>
 
-          <div class="cover-frame">
-            <span class="frame-corner tl"></span>
-            <span class="frame-corner tr"></span>
-            <span class="frame-corner bl"></span>
-            <span class="frame-corner br"></span>
-
-            <video
-              src="videos/hero.mp4"
-              autoplay
-              loop
-              muted
-              playsinline
-              poster="images/me.jpg"
-            ></video>
+      <!-- ============ CTA ============ -->
+      <section class="home-cta reveal" aria-labelledby="cta-title">
+        <div class="home-cta-inner">
+          <h2 id="cta-title">Есть чем поделиться?</h2>
+          <p>
+            Зарегистрируйся, пиши посты, оставляй комментарии и предлагай
+            контент. Здесь рады всем.
+          </p>
+          <div class="cover-actions">
+            <a href="posts.html" class="btn btn-primary">Написать пост</a>
+            <a href="suggestions.html" class="btn btn-ghost">В предложку</a>
           </div>
         </div>
-      </div>
-
-      <div class="cover-footer">
-        <span class="cover-footer-line"></span>
-        <span class="cover-footer-text">написано и собрано вручную</span>
-        <span class="cover-footer-line"></span>
-      </div>
+      </section>
     </main>
 
     <div id="site-footer"></div>

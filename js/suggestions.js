@@ -86,7 +86,7 @@
   function openForm() {
     const me = window.Auth.getCurrentUser();
     if (!me) {
-      alert("Войди, чтобы предложить.");
+      window.Toast.info("Войди, чтобы предложить.");
       return;
     }
     formWrap.hidden = false;
@@ -321,13 +321,13 @@
 
         if (act === "like" || act === "dislike") {
           if (!window.Auth.getCurrentUser())
-            return alert("Войди, чтобы голосовать.");
+            return window.Toast.info("Войди, чтобы голосовать.");
           window.Auth.reactToSuggestion(id, act);
           renderFeed();
         } else if (act === "delete") {
           if (!confirm("Удалить предложку?")) return;
           const res = window.Auth.removeSuggestion(id);
-          if (!res.ok) return alert(res.error);
+          if (!res.ok) return window.Toast.error(res.error);
           renderFilters();
           renderFeed();
         } else if (act === "report") {
