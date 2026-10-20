@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "supadns-js": "^1.0.1"
+  }
+}
