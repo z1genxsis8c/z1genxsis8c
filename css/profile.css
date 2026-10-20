@@ -609,7 +609,6 @@
   pointer-events: none;
   overflow: hidden;
 }
-/* Перекрестие внутри круга */
 .cropper-circle::before,
 .cropper-circle::after {
   content: "";
@@ -738,5 +737,146 @@
 @media (max-width: 400px) {
   .cropper-stage {
     max-width: 240px;
+  }
+}
+
+/* ============================================================
+   СЕКЦИИ ПРОФИЛЯ (активность, списки, черновик)
+   ============================================================ */
+
+.profile-activity {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.pa-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  background: rgba(10, 7, 16, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.pa-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+}
+.pa-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.profile-list-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(10, 7, 16, 0.35);
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+.profile-list-item:hover {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+.pli-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--purple-bright);
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pli-title {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pli-meta {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.profile-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.profile-draft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(251, 191, 36, 0.06);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+.profile-draft-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.profile-draft-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-draft-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+.profile-draft .btn-save {
+  padding: 8px 18px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .profile-activity {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .profile-list-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .pli-title,
+  .pli-badge {
+    white-space: normal;
+  }
+  .profile-draft {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

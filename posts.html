@@ -91,6 +91,8 @@
       </div>
     </div>
 
+    <div class="tag-filter-banner" id="tag-filter-banner" hidden></div>
+
     <main class="posts-feed" id="posts-feed"></main>
 
     <div class="empty-state" id="empty-state" hidden>
@@ -170,9 +172,12 @@
               ></textarea>
             </div>
 
-            <button type="submit" class="auth-submit" style="margin-top: 10px">
-              Опубликовать
-            </button>
+            <div class="edit-post-actions">
+              <button type="submit" class="auth-submit">Опубликовать</button>
+              <button type="button" class="btn-cancel" id="save-draft-btn">
+                В черновик
+              </button>
+            </div>
           </form>
         </div>
       </article>

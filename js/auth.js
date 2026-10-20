@@ -40,6 +40,7 @@
   const SUGGESTIONS_REACTIONS_KEY = "suggestions-reactions";
   const CUSTOM_POSTS_KEY = "site-custom-posts";
   const BOOKMARKS_KEY = "site-bookmarks";
+  const DRAFTS_KEY = "site-drafts";
 
   function _load(key, fallback) {
     try {
@@ -1001,6 +1002,54 @@
     return [...custom, ...base].filter((p) => !removed.includes(p.id));
   }
 
+  /* ============ КОММЕНТАРИИ ПОЛЬЗОВАТЕЛЯ (для профиля) ============ */
+  function getUserComments(userId, limit = 10) {
+    const all = loadComments();
+    const result = [];
+    for (const postId in all) {
+      all[postId].forEach((c) => {
+        if (c.authorId === userId && !c.deleted) {
+          result.push({ ...c, _postId: postId });
+        }
+      });
+    }
+    result.sort((a, b) => b.createdAt - a.createdAt);
+    return limit ? result.slice(0, limit) : result;
+  }
+
+  /* ============ ЧЕРНОВИКИ ============ */
+  function getDraft() {
+    const me = getCurrentUser();
+    if (!me) return null;
+    const drafts = _load(DRAFTS_KEY, {});
+    return drafts[me.id] || null;
+  }
+
+  function saveDraft(data) {
+    const me = getCurrentUser();
+    if (!me) return { ok: false, error: "Нужно войти" };
+    const drafts = _load(DRAFTS_KEY, {});
+    drafts[me.id] = {
+      title: String(data.title || "").slice(0, 100),
+      excerpt: String(data.excerpt || "").slice(0, 200),
+      body: String(data.body || ""),
+      category: data.category || "story",
+      tags: data.tags || [],
+      updatedAt: Date.now(),
+    };
+    _save(DRAFTS_KEY, drafts);
+    return { ok: true };
+  }
+
+  function clearDraft() {
+    const me = getCurrentUser();
+    if (!me) return { ok: false };
+    const drafts = _load(DRAFTS_KEY, {});
+    delete drafts[me.id];
+    _save(DRAFTS_KEY, drafts);
+    return { ok: true };
+  }
+
   /* ============ ЭКСПОРТ ============ */
   window.Auth = {
     getCurrentUser,
@@ -1068,13 +1117,17 @@
     dismissReport,
     getRemovedPostIds,
 
-    /* НОВЫЕ */
     escapeHTML,
     toggleBookmark,
     isBookmarked,
     getBookmarks,
     editCustomPost,
     getAllPosts,
+
+    getUserComments,
+    getDraft,
+    saveDraft,
+    clearDraft,
 
     _hash: hash,
   };

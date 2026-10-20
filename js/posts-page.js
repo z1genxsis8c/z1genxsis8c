@@ -46,6 +46,7 @@
   let currentFilter = "all";
   let currentSort = "new";
   let currentSearch = "";
+  let currentTag = null;
   let editingPostId = null;
 
   /* ---------- Реакции ---------- */
@@ -198,8 +199,10 @@
     filtersEl.querySelectorAll(".filter-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         currentFilter = btn.dataset.filter;
+        currentTag = null;
         renderFilters();
         renderFeed();
+        renderTagBanner();
       });
     });
   }
@@ -238,7 +241,7 @@
 
         ${
           post.tags && post.tags.length
-            ? `<div class="post-tags">${post.tags.map((t) => `<span class="tag">#${escapeHTML(t)}</span>`).join("")}</div>`
+            ? `<div class="post-tags">${post.tags.map((t) => `<button type="button" class="tag" data-tag="${escapeHTML(t)}">#${escapeHTML(t)}</button>`).join("")}</div>`
             : ""
         }
 
@@ -333,6 +336,14 @@
       );
     }
 
+    if (currentTag) {
+      list = list.filter((p) =>
+        (p.tags || []).some(
+          (t) => t.toLowerCase() === currentTag.toLowerCase(),
+        ),
+      );
+    }
+
     if (currentSort === "new") {
       list.sort((a, b) => new Date(b.date) - new Date(a.date));
     } else if (currentSort === "popular") {
@@ -369,7 +380,8 @@
         if (
           e.target.closest(".react-btn") ||
           e.target.closest(".post-report-btn") ||
-          e.target.closest(".post-bookmark-btn")
+          e.target.closest(".post-bookmark-btn") ||
+          e.target.closest(".tag")
         )
           return;
         const post = getAllPosts().find(
@@ -424,6 +436,47 @@
         });
       });
     });
+
+    feedEl.querySelectorAll(".tag[data-tag]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        currentTag = btn.dataset.tag;
+        currentFilter = "all";
+        currentSearch = "";
+        if (searchEl) searchEl.value = "";
+        if (clearEl) clearEl.hidden = true;
+        renderFilters();
+        renderFeed();
+        renderTagBanner();
+      });
+    });
+  }
+
+  function renderTagBanner() {
+    let banner = document.getElementById("tag-filter-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "tag-filter-banner";
+      banner.className = "tag-filter-banner";
+      if (feedEl && feedEl.parentNode) {
+        feedEl.parentNode.insertBefore(banner, feedEl);
+      }
+    }
+    if (!banner) return;
+    if (currentTag) {
+      banner.hidden = false;
+      banner.innerHTML = `<span>Фильтр по тегу: <b>#${escapeHTML(currentTag)}</b></span><button id="clear-tag-btn" aria-label="Сбросить">×</button>`;
+      document
+        .getElementById("clear-tag-btn")
+        ?.addEventListener("click", () => {
+          currentTag = null;
+          renderTagBanner();
+          renderFeed();
+        });
+    } else {
+      banner.hidden = true;
+      banner.innerHTML = "";
+    }
   }
 
   /* ---------- Модалка просмотра ---------- */
@@ -463,7 +516,7 @@
 
       ${
         post.tags && post.tags.length
-          ? `<div class="post-tags">${post.tags.map((t) => `<span class="tag">#${escapeHTML(t)}</span>`).join("")}</div>`
+          ? `<div class="post-tags">${post.tags.map((t) => `<button type="button" class="tag" data-tag="${escapeHTML(t)}">#${escapeHTML(t)}</button>`).join("")}</div>`
           : ""
       }
 
@@ -584,7 +637,6 @@
       });
     }
 
-    // Кнопка "Редактировать" — открывает модалку редактирования
     const editBtn = modalBody.querySelector("#edit-this-post");
     if (editBtn) {
       editBtn.addEventListener("click", () => {
@@ -628,6 +680,17 @@
     createForm.reset();
     postMsg.className = "auth-msg";
     postMsg.textContent = "";
+
+    const draft = window.Auth.getDraft ? window.Auth.getDraft() : null;
+    if (draft && (draft.title || draft.body)) {
+      createForm.elements.title.value = draft.title || "";
+      createForm.elements.body.value = draft.body || "";
+      createForm.elements.excerpt.value = draft.excerpt || "";
+      createForm.elements.tags.value = (draft.tags || []).join(", ");
+      createForm.elements.category.value = draft.category || "story";
+      window.Toast.info("Загружен черновик");
+    }
+
     createModal.hidden = false;
     requestAnimationFrame(() => createModal.classList.add("open"));
   });
@@ -665,6 +728,8 @@
       postMsg.textContent = res.error;
       return;
     }
+
+    if (window.Auth.clearDraft) window.Auth.clearDraft();
 
     postMsg.className = "auth-msg show success";
     postMsg.textContent = "Пост опубликован!";
@@ -763,6 +828,8 @@
   let searchTimer;
   searchEl.addEventListener("input", () => {
     currentSearch = searchEl.value;
+    currentTag = null;
+    renderTagBanner();
     clearEl.hidden = !currentSearch;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(renderFeed, 120);
@@ -786,6 +853,49 @@
       renderFeed();
     });
   });
+
+  /* ---------- Кнопка "В черновик" ---------- */
+  const saveDraftBtn = document.getElementById("save-draft-btn");
+  if (saveDraftBtn && createForm) {
+    saveDraftBtn.addEventListener("click", () => {
+      const fd = new FormData(createForm);
+      const tags = (fd.get("tags") || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const res = window.Auth.saveDraft({
+        title: fd.get("title") || "",
+        excerpt: fd.get("excerpt") || "",
+        body: fd.get("body") || "",
+        category: fd.get("category") || "story",
+        tags,
+      });
+      if (res.ok) {
+        window.Toast.success("Черновик сохранён");
+      } else {
+        window.Toast.error(res.error || "Не удалось сохранить");
+      }
+    });
+  }
+
+  /* ---------- Deep-link: ?post=id и ?draft=1 ---------- */
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlPostId = urlParams.get("post");
+  const urlDraft = urlParams.get("draft");
+
+  if (urlDraft === "1" && window.Auth.getCurrentUser()) {
+    setTimeout(() => {
+      document.getElementById("create-post-btn")?.click();
+    }, 200);
+  } else if (urlPostId) {
+    setTimeout(() => {
+      const target = getAllPosts().find(
+        (p) => String(p.id) === String(urlPostId),
+      );
+      if (target) openModal(target);
+      else if (window.Toast) window.Toast.error("Пост не найден");
+    }, 200);
+  }
 
   /* ---------- Старт ---------- */
   renderFilters();

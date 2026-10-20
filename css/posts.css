@@ -174,12 +174,23 @@
   position: relative;
 }
 .post-tags .tag {
+  font-family: inherit;
   font-size: 12px;
   color: var(--purple-bright);
   background: rgba(139, 92, 246, 0.08);
   border: 1px solid rgba(167, 139, 250, 0.2);
   padding: 3px 10px;
   border-radius: 100px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.post-tags .tag:hover {
+  background: rgba(139, 92, 246, 0.22);
+  color: #fff;
+  border-color: rgba(167, 139, 250, 0.5);
 }
 
 .post-foot {
@@ -820,6 +831,51 @@
   font-size: 13px;
 }
 
+/* ============================================================
+   Кликабельные теги + баннер активного тега
+   ============================================================ */
+
+.tag-filter-banner {
+  position: relative;
+  z-index: 1;
+  max-width: var(--max-w);
+  margin: 0 auto 16px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 14px;
+  font-size: 14px;
+  color: var(--text);
+}
+.tag-filter-banner[hidden] {
+  display: none;
+}
+.tag-filter-banner b {
+  color: var(--purple-bright);
+}
+.tag-filter-banner button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+.tag-filter-banner button:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
 /* ---------- Адаптив ---------- */
 @media (max-width: 1100px) {
   .posts-feed {
@@ -848,6 +904,10 @@
   }
   .post-title {
     font-size: 17px;
+  }
+
+  .tag-filter-banner {
+    margin: 0 20px 16px;
   }
 
   .comment-form,

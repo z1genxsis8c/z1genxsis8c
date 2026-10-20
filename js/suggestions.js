@@ -173,7 +173,6 @@
     const isStaff = me && window.Auth.isStaff(me);
     const canDelete = isMine || isStaff;
 
-    // Жалоба недоступна на свои же предложки
     const canReport = me && !isMine;
 
     const counts = window.Auth.getSuggestionCounts(item);
@@ -181,6 +180,7 @@
     const author = window.Auth.getUserById(item.authorId);
     const roleLabel = author ? window.Auth.getRoleLabel(author) : "";
     const roleClass = author ? (author.role || "").toLowerCase() : "";
+    const commentCount = window.Auth.getCommentCount("sug_" + item.id);
 
     return `
       <article class="suggest-card" data-id="${item.id}" style="--accent: ${meta.color}">
@@ -227,6 +227,14 @@
           </div>
 
           <div class="suggest-actions">
+            <button class="react-btn" data-act="comments" data-id="${item.id}" aria-label="Комментарии" title="Комментарии">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>${commentCount}</span>
+            </button>
+
             <button class="react-btn like ${counts.userReaction === "like" ? "active" : ""}"
                     data-act="like" data-id="${item.id}" aria-label="Нравится">
               <svg width="15" height="15" viewBox="0 0 24 24"
@@ -339,6 +347,10 @@
             targetUserId: s.authorId,
             targetTitle: s.title,
           });
+        } else if (act === "comments") {
+          const s = window.Auth.getSuggestionById(id);
+          if (!s) return;
+          openSuggestComments(s);
         }
       });
     });
@@ -355,6 +367,58 @@
       renderFeed();
     });
   });
+
+  /* ============================================================
+     МОДАЛКА КОММЕНТАРИЕВ К ПРЕДЛОЖКЕ
+     ============================================================ */
+  function openSuggestComments(item) {
+    const modal = document.getElementById("suggest-comments-modal");
+    const subEl = document.getElementById("suggest-comments-subtitle");
+    const container = document.getElementById("suggest-comments-container");
+
+    if (!modal || !container) return;
+
+    // Устанавливаем название предложки в шапку модалки
+    if (subEl) subEl.textContent = item.title;
+
+    container.innerHTML = "";
+
+    modal.hidden = false;
+    requestAnimationFrame(() => modal.classList.add("open"));
+    document.body.style.overflow = "hidden";
+
+    let closed = false;
+    function close() {
+      if (closed) return;
+      closed = true;
+      modal.classList.remove("open");
+      document.body.style.overflow = "";
+      if (window.Comments) window.Comments.unmount();
+      setTimeout(() => {
+        modal.hidden = true;
+      }, 250);
+      modal
+        .querySelectorAll("[data-close-suggest-comments]")
+        .forEach((el) => el.removeEventListener("click", close));
+      document.removeEventListener("keydown", onEsc);
+      renderFeed();
+    }
+    function onEsc(e) {
+      if (e.key === "Escape") close();
+    }
+
+    modal
+      .querySelectorAll("[data-close-suggest-comments]")
+      .forEach((el) => el.addEventListener("click", close));
+    document.addEventListener("keydown", onEsc);
+
+    setTimeout(() => {
+      if (window.Comments) {
+        // Передаем ID предложки в comments.js с префиксом "sug_"
+        window.Comments.mount("sug_" + item.id, container);
+      }
+    }, 50);
+  }
 
   /* ---------- Старт ---------- */
   renderTypes();

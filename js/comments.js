@@ -42,9 +42,10 @@
     const me = window.Auth.getCurrentUser();
     if (!me) {
       if (window.Auth && window.Auth.openAuth) {
-        // попытаться открыть модалку входа, если есть
+        window.Auth.openAuth("login");
+      } else {
+        window.Toast.info("Войди в аккаунт, чтобы участвовать в обсуждении.");
       }
-      window.Toast.info("Войди в аккаунт, чтобы участвовать в обсуждении.");
       return false;
     }
     return true;

@@ -1,5 +1,5 @@
 /* ============================================================
-   profile.js — страница профиля
+   profile.js — страница профиля (визитка + активность)
    ============================================================ */
 
 (function () {
@@ -33,6 +33,16 @@
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+  function formatTimeAgo(ts) {
+    const d = new Date(ts);
+    if (isNaN(d)) return "";
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return "только что";
+    if (diff < 3600) return Math.floor(diff / 60) + " мин назад";
+    if (diff < 86400) return Math.floor(diff / 3600) + " ч назад";
+    if (diff < 86400 * 7) return Math.floor(diff / 86400) + " дн назад";
+    return formatDateOnly(ts);
   }
   function avatarHTML(user) {
     if (user.avatar) return `<img src="${escapeHTML(user.avatar)}" alt="" />`;
@@ -78,6 +88,111 @@
     `;
   }
 
+  /* ---------- Секции ---------- */
+  function renderUserPosts(user) {
+    const all = window.Auth.getAllPosts ? window.Auth.getAllPosts() : [];
+    const mine = all.filter(
+      (p) =>
+        (p.author?.name || "").toLowerCase() === user.username.toLowerCase(),
+    );
+    if (!mine.length) {
+      return `<div class="profile-empty">Постов пока нет.</div>`;
+    }
+    return `<div class="profile-list">${mine
+      .map((p) => {
+        const catLabel =
+          { code: "Код", game: "Игра", story: "Рассказ" }[p.category] || "Пост";
+        return `
+        <a href="posts.html?post=${p.id}" class="profile-list-item">
+          <span class="pli-badge">${catLabel}</span>
+          <span class="pli-title">${escapeHTML(p.title)}</span>
+          <span class="pli-meta">${formatDateOnly(p.date)} · 👁 ${p.views || 0}</span>
+        </a>`;
+      })
+      .join("")}</div>`;
+  }
+
+  function renderUserComments(user) {
+    if (!window.Auth.getUserComments) {
+      return `<div class="profile-empty">Комментариев пока нет.</div>`;
+    }
+    const list = window.Auth.getUserComments(user.id, 10);
+    if (!list.length) {
+      return `<div class="profile-empty">Комментариев пока нет.</div>`;
+    }
+    return `<div class="profile-list">${list
+      .map((c) => {
+        const isSuggestion = String(c._postId).startsWith("sug_");
+        let target = "posts.html";
+        let targetTitle = "Пост";
+        if (isSuggestion) {
+          target = "suggestions.html";
+          targetTitle = "Предложка";
+        } else {
+          const posts = window.Auth.getAllPosts
+            ? window.Auth.getAllPosts()
+            : [];
+          const p = posts.find((x) => String(x.id) === String(c._postId));
+          if (p) {
+            target = "posts.html?post=" + p.id;
+            targetTitle = p.title;
+          }
+        }
+        const preview =
+          c.text.length > 120 ? c.text.slice(0, 120) + "…" : c.text;
+        return `
+        <a href="${target}" class="profile-list-item">
+          <span class="pli-badge" title="${escapeHTML(targetTitle)}">${escapeHTML(targetTitle)}</span>
+          <span class="pli-title">${escapeHTML(preview)}</span>
+          <span class="pli-meta">${formatTimeAgo(c.createdAt)}</span>
+        </a>`;
+      })
+      .join("")}</div>`;
+  }
+
+  function renderUserBookmarks() {
+    if (!window.Auth.getBookmarks) return "";
+    const bm = window.Auth.getBookmarks();
+    if (!bm.length) {
+      return `<div class="profile-empty">Ты ещё ничего не сохранил.</div>`;
+    }
+    const posts = window.Auth.getAllPosts ? window.Auth.getAllPosts() : [];
+    const saved = posts.filter((p) => bm.includes(p.id));
+    if (!saved.length) {
+      return `<div class="profile-empty">Сохранённые посты не найдены.</div>`;
+    }
+    return `<div class="profile-list">${saved
+      .map(
+        (p) => `
+      <a href="posts.html?post=${p.id}" class="profile-list-item">
+        <span class="pli-badge">Пост</span>
+        <span class="pli-title">${escapeHTML(p.title)}</span>
+        <span class="pli-meta">${formatDateOnly(p.date)}</span>
+      </a>`,
+      )
+      .join("")}</div>`;
+  }
+
+  function renderDraftBlock() {
+    if (!window.Auth.getDraft) return "";
+    const draft = window.Auth.getDraft();
+    if (!draft || (!draft.title && !draft.body)) return "";
+    return `
+      <section class="profile-section">
+        <div class="profile-section-head">
+          <span class="profile-section-title">Черновик</span>
+        </div>
+        <div class="profile-draft">
+          <div class="profile-draft-info">
+            <span class="profile-draft-title">${escapeHTML(draft.title || "Без названия")}</span>
+            <span class="profile-draft-meta">Обновлён ${formatTimeAgo(draft.updatedAt)}</span>
+          </div>
+          <a href="posts.html?draft=1" class="btn-save" style="text-decoration:none;">Продолжить</a>
+        </div>
+      </section>
+    `;
+  }
+
   /* ---------- Основной рендер ---------- */
   function render() {
     const me = window.Auth.getCurrentUser();
@@ -93,6 +208,17 @@
     const liked = me ? window.Auth.hasLikedProfile(target.id) : false;
     const bio = target.bio || "";
     const banned = window.Auth.isBanned(target);
+
+    const allPosts = window.Auth.getAllPosts ? window.Auth.getAllPosts() : [];
+    const userPosts = allPosts.filter(
+      (p) =>
+        (p.author?.name || "").toLowerCase() === target.username.toLowerCase(),
+    );
+    const userComments = window.Auth.getUserComments
+      ? window.Auth.getUserComments(target.id, null)
+      : [];
+    const userBookmarks =
+      isMe && window.Auth.getBookmarks ? window.Auth.getBookmarks() : [];
 
     root.innerHTML = `
       <!-- Шапка -->
@@ -164,11 +290,7 @@
 
             ${
               iAmStaff && !isMe && banned
-                ? `
-              <button class="profile-unban-btn" id="unban-btn">
-                Снять бан
-              </button>
-            `
+                ? `<button class="profile-unban-btn" id="unban-btn">Снять бан</button>`
                 : ""
             }
           </div>
@@ -216,7 +338,6 @@
           <div class="profile-edit" id="bio-edit">
             <div class="profile-msg" id="profile-msg"></div>
 
-            <!-- Загрузка аватарки -->
             <label>Аватарка</label>
             <div class="avatar-uploader">
               <div class="avatar-preview" id="avatar-preview">
@@ -249,6 +370,51 @@
             : ""
         }
       </section>
+
+      <!-- Активность -->
+      <section class="profile-section">
+        <div class="profile-section-head">
+          <span class="profile-section-title">Активность</span>
+        </div>
+        <div class="profile-activity">
+          <div class="pa-item"><span class="pa-value">${userPosts.length}</span><span class="pa-label">постов</span></div>
+          <div class="pa-item"><span class="pa-value">${userComments.length}</span><span class="pa-label">комментариев</span></div>
+          <div class="pa-item"><span class="pa-value">${userBookmarks.length}</span><span class="pa-label">закладок</span></div>
+          <div class="pa-item"><span class="pa-value">${likeCount}</span><span class="pa-label">лайков профиля</span></div>
+        </div>
+      </section>
+
+      ${isMe ? renderDraftBlock() : ""}
+
+      <!-- Посты -->
+      <section class="profile-section">
+        <div class="profile-section-head">
+          <span class="profile-section-title">Посты</span>
+        </div>
+        ${renderUserPosts(target)}
+      </section>
+
+      <!-- Комментарии -->
+      <section class="profile-section">
+        <div class="profile-section-head">
+          <span class="profile-section-title">Комментарии</span>
+        </div>
+        ${renderUserComments(target)}
+      </section>
+
+      <!-- Сохранённое (только для себя) -->
+      ${
+        isMe
+          ? `
+        <section class="profile-section">
+          <div class="profile-section-head">
+            <span class="profile-section-title">Сохранённое</span>
+          </div>
+          ${renderUserBookmarks()}
+        </section>
+      `
+          : ""
+      }
     `;
 
     bindEvents(target, me, isMe, iAmStaff);
@@ -256,9 +422,7 @@
 
   /* ---------- События ---------- */
   function bindEvents(target, me, isMe, iAmStaff) {
-    // Лайк
-    const likeBtn = document.getElementById("like-btn");
-    likeBtn?.addEventListener("click", () => {
+    document.getElementById("like-btn")?.addEventListener("click", () => {
       if (!me) {
         window.Toast.info("Войди, чтобы поставить лайк.");
         return;
@@ -268,7 +432,6 @@
       render();
     });
 
-    // Жалоба на профиль
     document.getElementById("report-btn")?.addEventListener("click", () => {
       window.ReportModal.open({
         type: "profile",
@@ -277,14 +440,12 @@
       });
     });
 
-    // Снять бан
     document.getElementById("unban-btn")?.addEventListener("click", () => {
       if (!confirm(`Снять бан с ${target.username}?`)) return;
       window.Auth.unbanUser(target.id);
       render();
     });
 
-    // Редактирование
     if (!isMe) return;
 
     const editBtn = document.getElementById("edit-btn");
@@ -328,13 +489,11 @@
     fileInput?.addEventListener("change", () => {
       const file = fileInput.files?.[0];
       if (!file) return;
-      fileInput.value = ""; // чтобы можно было выбрать тот же файл повторно
-
+      fileInput.value = "";
       if (!window.AvatarCropper) {
         showMsg("error", "Кроппер не загружен");
         return;
       }
-
       window.AvatarCropper.open(file, (dataUrl) => {
         pendingAvatar = dataUrl;
         preview.innerHTML = `<img src="${dataUrl}" alt="" />`;
