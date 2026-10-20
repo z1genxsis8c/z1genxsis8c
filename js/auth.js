@@ -480,7 +480,7 @@
       <form class="auth-form" id="register-form">
         <div class="field">
           <label>Логин (Ник)</label>
-          <input type="text" name="username" placeholder="username" required minlength="3" pattern="[a-zA-Z0-9_-]+" />
+          <input type="text" name="username" placeholder="username" required minlength="3" />
         </div>
         <div class="field">
           <label>Почта</label>
