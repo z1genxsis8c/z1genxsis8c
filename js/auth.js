@@ -236,7 +236,19 @@
       }
     }
 
-    if (!authResolved) return; // Ждем, пока Supabase проверит сессию
+    // Если Supabase не ответил за 2 секунды, показываем кнопку "Войти" в любом случае
+    if (!authResolved) {
+      setTimeout(() => {
+        if (!authResolved) {
+          console.warn(
+            "Supabase не ответил, показываем кнопку Войти принудительно.",
+          );
+          authResolved = true;
+          renderAuthSlot(); // Перерисовываем навбар
+        }
+      }, 2000); // 2000 мс = 2 секунды
+      return;
+    }
 
     const user = getCurrentUser();
 
