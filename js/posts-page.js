@@ -3,7 +3,7 @@
    создание постов, редактирование, комментарии, реакции, закладки
    ============================================================ */
 
-(function () {
+(async function () {
   const CATEGORIES = {
     code: {
       label: "Программирование",
@@ -48,8 +48,9 @@
   let currentSearch = "";
   let currentTag = null;
   let editingPostId = null;
+  let cachedPosts = []; // Здесь храним посты, загруженные из БД
 
-  /* ---------- Реакции ---------- */
+  /* ---------- Реакции (пока локально) ---------- */
   function loadReactions() {
     try {
       return JSON.parse(localStorage.getItem(KEY) || "{}");
@@ -79,7 +80,7 @@
     renderFeed();
   }
 
-  /* ---------- Просмотры ---------- */
+  /* ---------- Просмотры (локально) ---------- */
   function loadViewed() {
     try {
       return new Set(JSON.parse(localStorage.getItem(VIEWED_KEY) || "[]"));
@@ -126,46 +127,26 @@
     const letter = (author.name || "?").charAt(0).toUpperCase();
     return `<span class="author-avatar author-avatar-letter">${letter}</span>`;
   }
-  function getPostAuthorId(post) {
-    if (!window.Auth || !post.author) return null;
-    const u = window.Auth.getUserByUsername(post.author.name);
-    return u ? u.id : null;
-  }
   function isAuthorMe(post) {
     const me = window.Auth && window.Auth.getCurrentUser();
     if (!me) return false;
     return me.username.toLowerCase() === (post.author.name || "").toLowerCase();
   }
   function commentCount(postId) {
-    return window.Auth && window.Auth.getCommentCount
-      ? window.Auth.getCommentCount(postId)
-      : 0;
-  }
-  function getAllPosts() {
-    if (window.Auth && window.Auth.getAllPosts)
-      return window.Auth.getAllPosts();
-    const custom = window.Auth.getCustomPosts
-      ? window.Auth.getCustomPosts()
-      : [];
-    const removed = window.Auth.getRemovedPostIds
-      ? window.Auth.getRemovedPostIds()
-      : [];
-    let all = [...custom, ...POSTS];
-    if (removed.length > 0) all = all.filter((p) => !removed.includes(p.id));
-    return all;
+    // Пока возвращаем 0, так как комментарии подгружаются внутри модалки
+    // В идеале нужно добавить count в getAllPosts, но для простоты пока так
+    return 0;
   }
 
   /* ---------- Фильтры ---------- */
   function renderFilters() {
-    const allPosts = getAllPosts();
-    const counts = { all: allPosts.length };
-    allPosts.forEach((p) => {
+    const counts = { all: cachedPosts.length };
+    cachedPosts.forEach((p) => {
       counts[p.category] = (counts[p.category] || 0) + 1;
     });
-    const bookmarksCount =
-      window.Auth && window.Auth.getBookmarks
-        ? window.Auth.getBookmarks().length
-        : 0;
+    const bookmarksCount = window.Auth.getBookmarks
+      ? window.Auth.getBookmarks().length
+      : 0;
     counts.bookmarks = bookmarksCount;
 
     const items = [
@@ -213,10 +194,9 @@
     const c = getCounts(post);
     const showReport = !isAuthorMe(post);
     const cCount = commentCount(post.id);
-    const bookmarked =
-      window.Auth && window.Auth.isBookmarked
-        ? window.Auth.isBookmarked(post.id)
-        : false;
+    const bookmarked = window.Auth.isBookmarked
+      ? window.Auth.isBookmarked(post.id)
+      : false;
 
     return `
       <article class="post-card" data-id="${post.id}" style="--accent: ${cat.color}">
@@ -248,21 +228,14 @@
         <footer class="post-foot">
           <div class="reactions" data-id="${post.id}">
             <button class="react-btn like ${c.userReaction === "like" ? "active" : ""}" data-react="like" aria-label="Нравится">
-              <svg width="15" height="15" viewBox="0 0 24 24"
-                   fill="${c.userReaction === "like" ? "currentColor" : "none"}"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M7 10v12"/>
-                <path d="M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88z"/>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="${c.userReaction === "like" ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88z"/>
               </svg>
               <span>${numberShort(c.likes)}</span>
             </button>
-
             <button class="react-btn dislike ${c.userReaction === "dislike" ? "active" : ""}" data-react="dislike" aria-label="Не нравится">
-              <svg width="15" height="15" viewBox="0 0 24 24"
-                   fill="${c.userReaction === "dislike" ? "currentColor" : "none"}"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 14V2"/>
-                <path d="M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88z"/>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="${c.userReaction === "dislike" ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 14V2"/><path d="M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88z"/>
               </svg>
               <span>${numberShort(c.dislikes)}</span>
             </button>
@@ -270,39 +243,22 @@
 
           <div class="post-foot-right">
             <span class="post-meta-item" title="Комментарии">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               ${numberShort(cCount)}
             </span>
             <span class="post-meta-item" title="Просмотры">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               ${numberShort(c.views)}
             </span>
             <button class="post-bookmark-btn ${bookmarked ? "active" : ""}" data-bookmark="${post.id}" aria-label="В закладки" title="В закладки">
-              <svg width="14" height="14" viewBox="0 0 24 24"
-                   fill="${bookmarked ? "currentColor" : "none"}"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-              </svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="${bookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             </button>
             ${
               showReport
                 ? `
               <button class="post-report-btn" data-report="${post.id}" aria-label="Пожаловаться" title="Пожаловаться">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-              </button>
-            `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </button>`
                 : ""
             }
           </div>
@@ -313,13 +269,10 @@
 
   /* ---------- Лента ---------- */
   function getVisiblePosts() {
-    let list = getAllPosts();
+    let list = [...cachedPosts];
 
     if (currentFilter === "bookmarks") {
-      const bm =
-        window.Auth && window.Auth.getBookmarks
-          ? window.Auth.getBookmarks()
-          : [];
+      const bm = window.Auth.getBookmarks ? window.Auth.getBookmarks() : [];
       list = list.filter((p) => bm.includes(p.id));
     } else if (currentFilter !== "all") {
       list = list.filter((p) => p.category === currentFilter);
@@ -354,12 +307,6 @@
       });
     } else if (currentSort === "views") {
       list.sort((a, b) => (b.views || 0) - (a.views || 0));
-    } else if (currentSort === "bookmarks") {
-      const bm =
-        window.Auth && window.Auth.getBookmarks
-          ? window.Auth.getBookmarks()
-          : [];
-      list = list.filter((p) => bm.includes(p.id));
     }
     return list;
   }
@@ -384,9 +331,7 @@
           e.target.closest(".tag")
         )
           return;
-        const post = getAllPosts().find(
-          (p) => p.id === Number(card.dataset.id),
-        );
+        const post = cachedPosts.find((p) => p.id === card.dataset.id);
         if (post) openModal(post);
       });
     });
@@ -394,7 +339,7 @@
     feedEl.querySelectorAll(".react-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const id = Number(btn.closest(".reactions").dataset.id);
+        const id = btn.closest(".reactions").dataset.id;
         setReaction(id, btn.dataset.react);
       });
     });
@@ -406,7 +351,7 @@
           window.Toast.info("Войди, чтобы сохранять посты");
           return;
         }
-        const res = window.Auth.toggleBookmark(Number(btn.dataset.bookmark));
+        const res = window.Auth.toggleBookmark(btn.dataset.bookmark);
         if (res.ok) {
           btn.classList.toggle("active", res.bookmarked);
           btn
@@ -424,14 +369,12 @@
     feedEl.querySelectorAll(".post-report-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const post = getAllPosts().find(
-          (p) => p.id === Number(btn.dataset.report),
-        );
+        const post = cachedPosts.find((p) => p.id === btn.dataset.report);
         if (!post || !window.ReportModal) return;
         window.ReportModal.open({
           type: "post",
           targetId: post.id,
-          targetUserId: getPostAuthorId(post),
+          targetUserId: post.author_id,
           targetTitle: post.title,
         });
       });
@@ -458,9 +401,8 @@
       banner = document.createElement("div");
       banner.id = "tag-filter-banner";
       banner.className = "tag-filter-banner";
-      if (feedEl && feedEl.parentNode) {
+      if (feedEl && feedEl.parentNode)
         feedEl.parentNode.insertBefore(banner, feedEl);
-      }
     }
     if (!banner) return;
     if (currentTag) {
@@ -487,12 +429,10 @@
 
     const c = getCounts(post);
     const showReport = !isAuthorMe(post);
-    const cCount = commentCount(post.id);
-
     const me = window.Auth.getCurrentUser();
     const isStaff = me && window.Auth.isStaff(me);
-    const canDelete = post.isCustom || isStaff;
-    const canEdit = post.isCustom && (isAuthorMe(post) || isStaff);
+    const canDelete = isStaff || isAuthorMe(post);
+    const canEdit = isAuthorMe(post) || isStaff;
 
     modalBody.innerHTML = `
       <header class="modal-header">
@@ -522,70 +462,36 @@
 
       <div class="modal-meta-row">
         <button class="react-btn like ${c.userReaction === "like" ? "active" : ""}" data-react="like" data-id="${post.id}">
-          <svg width="16" height="16" viewBox="0 0 24 24"
-               fill="${c.userReaction === "like" ? "currentColor" : "none"}"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 10v12"/>
-            <path d="M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88z"/>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${c.userReaction === "like" ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88z"/></svg>
           <span>${numberShort(c.likes)}</span>
         </button>
         <button class="react-btn dislike ${c.userReaction === "dislike" ? "active" : ""}" data-react="dislike" data-id="${post.id}">
-          <svg width="16" height="16" viewBox="0 0 24 24"
-               fill="${c.userReaction === "dislike" ? "currentColor" : "none"}"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 14V2"/>
-            <path d="M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88z"/>
-          </svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${c.userReaction === "dislike" ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88z"/></svg>
           <span>${numberShort(c.dislikes)}</span>
         </button>
         <span class="post-meta-item post-meta-item-lg">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          ${cCount}
-        </span>
-        <span class="post-meta-item post-meta-item-lg">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           ${numberShort(c.views)}
         </span>
-
         ${
           showReport
             ? `
-          <button class="post-report-btn post-report-btn-lg" data-report-modal="${post.id}" aria-label="Пожаловаться" title="Пожаловаться">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-          </button>
-        `
+          <button class="post-report-btn post-report-btn-lg" data-report-modal="${post.id}" aria-label="Пожаловаться">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>`
             : ""
         }
-
         ${canEdit ? `<button class="btn-delete" id="edit-this-post" data-id="${post.id}" style="background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.3); color: var(--purple-bright);">✏️ Редактировать</button>` : ""}
-        ${
-          canDelete
-            ? `<button class="btn-delete" id="delete-this-post" data-id="${post.id}">Удалить</button>`
-            : ""
-        }
+        ${canDelete ? `<button class="btn-delete" id="delete-this-post" data-id="${post.id}">Удалить</button>` : ""}
       </div>
 
       <div id="comments-container" class="comments-container"></div>
     `;
 
-    // Лайки/дизлайки — точечно, без переоткрытия модалки
     modalBody.querySelectorAll(".react-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         setReaction(post.id, btn.dataset.react);
-        const fresh = getAllPosts().find((p) => p.id === post.id);
+        const fresh = cachedPosts.find((p) => p.id === post.id);
         if (!fresh) return;
         const cc = getCounts(fresh);
         modalBody.querySelectorAll(".react-btn").forEach((b) => {
@@ -605,14 +511,12 @@
 
     modalBody.querySelectorAll("[data-report-modal]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const p = getAllPosts().find(
-          (x) => x.id === Number(btn.dataset.reportModal),
-        );
+        const p = cachedPosts.find((x) => x.id === btn.dataset.reportModal);
         if (!p || !window.ReportModal) return;
         window.ReportModal.open({
           type: "post",
           targetId: p.id,
-          targetUserId: getPostAuthorId(p),
+          targetUserId: p.author_id,
           targetTitle: p.title,
         });
       });
@@ -620,18 +524,18 @@
 
     const delBtn = modalBody.querySelector("#delete-this-post");
     if (delBtn) {
-      delBtn.addEventListener("click", () => {
+      delBtn.addEventListener("click", async () => {
         if (!confirm("Удалить этот пост навсегда?")) return;
-        let res;
-        if (post.isCustom) res = window.Auth.deleteCustomPost(post.id);
-        else res = window.Auth.deletePost(post.id);
-
+        delBtn.disabled = true;
+        delBtn.textContent = "Удаление...";
+        const res = await window.Auth.deleteCustomPost(post.id);
         if (res.ok) {
           closeModal();
-          renderFilters();
-          renderFeed();
+          await loadDataAndRender();
           if (window.Toast) window.Toast.success("Пост удалён");
         } else {
+          delBtn.disabled = false;
+          delBtn.textContent = "Удалить";
           window.Toast.error(res.error);
         }
       });
@@ -664,9 +568,9 @@
     }, 250);
   }
 
-  modalEl.querySelectorAll("[data-close]").forEach((el) => {
-    el.addEventListener("click", closeModal);
-  });
+  modalEl
+    .querySelectorAll("[data-close]")
+    .forEach((el) => el.addEventListener("click", closeModal));
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !modalEl.hidden) closeModal();
   });
@@ -702,20 +606,22 @@
     }, 250);
   }
 
-  createModal.querySelectorAll("[data-close-create]").forEach((el) => {
-    el.addEventListener("click", closeCreateModal);
-  });
+  createModal
+    .querySelectorAll("[data-close-create]")
+    .forEach((el) => el.addEventListener("click", closeCreateModal));
 
-  createForm.addEventListener("submit", (e) => {
+  createForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(createForm);
-    const tagsStr = fd.get("tags") || "";
-    const tags = tagsStr
+    const tags = (fd.get("tags") || "")
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+    const submitBtn = createForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Публикация...";
 
-    const res = window.Auth.addCustomPost({
+    const res = await window.Auth.addCustomPost({
       title: fd.get("title").trim(),
       excerpt: fd.get("excerpt").trim(),
       body: fd.get("body").trim(),
@@ -726,18 +632,20 @@
     if (!res.ok) {
       postMsg.className = "auth-msg show error";
       postMsg.textContent = res.error;
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Опубликовать";
       return;
     }
 
     if (window.Auth.clearDraft) window.Auth.clearDraft();
-
     postMsg.className = "auth-msg show success";
     postMsg.textContent = "Пост опубликован!";
 
-    setTimeout(() => {
+    setTimeout(async () => {
       closeCreateModal();
-      renderFilters();
-      renderFeed();
+      await loadDataAndRender(); // Перезагружаем ленту
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Опубликовать";
     }, 800);
   });
 
@@ -772,20 +680,17 @@
   }
 
   if (editModal && editForm) {
-    editModal.querySelectorAll("[data-close-edit]").forEach((el) => {
-      el.addEventListener("click", closeEditModal);
-    });
-
-    const cancelEditBtn = document.getElementById("cancel-edit-post");
-    if (cancelEditBtn) {
-      cancelEditBtn.addEventListener("click", closeEditModal);
-    }
-
+    editModal
+      .querySelectorAll("[data-close-edit]")
+      .forEach((el) => el.addEventListener("click", closeEditModal));
+    document
+      .getElementById("cancel-edit-post")
+      ?.addEventListener("click", closeEditModal);
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !editModal.hidden) closeEditModal();
     });
 
-    editForm.addEventListener("submit", (e) => {
+    editForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!editingPostId) return;
 
@@ -794,8 +699,11 @@
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
+      const submitBtn = editForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Сохранение...";
 
-      const res = window.Auth.editCustomPost(editingPostId, {
+      const res = await window.Auth.editCustomPost(editingPostId, {
         title: fd.get("title").trim(),
         body: fd.get("body").trim(),
         excerpt: fd.get("excerpt").trim(),
@@ -806,20 +714,22 @@
       if (!res.ok) {
         editMsg.className = "auth-msg show error";
         editMsg.textContent = res.error || "Не удалось сохранить";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Сохранить";
         return;
       }
 
       editMsg.className = "auth-msg show success";
       editMsg.textContent = "Сохранено!";
+      await loadDataAndRender(); // Перезагружаем ленту
 
-      renderFilters();
-      renderFeed();
-
-      const updated = res.post;
       setTimeout(() => {
         closeEditModal();
+        const updated = cachedPosts.find((p) => p.id === editingPostId);
         if (updated) openModal(updated);
         if (window.Toast) window.Toast.success("Пост обновлён");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Сохранить";
       }, 500);
     });
   }
@@ -870,40 +780,43 @@
         category: fd.get("category") || "story",
         tags,
       });
-      if (res.ok) {
-        window.Toast.success("Черновик сохранён");
-      } else {
-        window.Toast.error(res.error || "Не удалось сохранить");
-      }
+      if (res.ok) window.Toast.success("Черновик сохранён");
+      else window.Toast.error(res.error || "Не удалось сохранить");
     });
   }
 
-  /* ---------- Deep-link: ?post=id и ?draft=1 ---------- */
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlPostId = urlParams.get("post");
-  const urlDraft = urlParams.get("draft");
+  /* ---------- Загрузка данных и старт ---------- */
+  async function loadDataAndRender() {
+    if (window.Auth && window.Auth.getAllPosts) {
+      cachedPosts = await window.Auth.getAllPosts();
 
-  if (urlDraft === "1" && window.Auth.getCurrentUser()) {
-    setTimeout(() => {
-      document.getElementById("create-post-btn")?.click();
-    }, 200);
-  } else if (urlPostId) {
-    setTimeout(() => {
-      const target = getAllPosts().find(
-        (p) => String(p.id) === String(urlPostId),
-      );
-      if (target) openModal(target);
-      else if (window.Toast) window.Toast.error("Пост не найден");
-    }, 200);
+      // Обработка Deep-link (?post=id или ?draft=1)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPostId = urlParams.get("post");
+      const urlDraft = urlParams.get("draft");
+
+      if (urlPostId) {
+        const target = cachedPosts.find(
+          (p) => String(p.id) === String(urlPostId),
+        );
+        if (target) openModal(target);
+        else if (window.Toast) window.Toast.error("Пост не найден");
+      } else if (urlDraft === "1" && window.Auth.getCurrentUser()) {
+        document.getElementById("create-post-btn")?.click();
+      }
+
+      renderFilters();
+      renderFeed();
+    }
   }
 
-  /* ---------- Старт ---------- */
-  renderFilters();
-  renderFeed();
-
+  // Слушаем изменения авторизации (чтобы обновить кнопки при входе/выходе)
   window.addEventListener("auth:change", () => {
     if (!modalEl.hidden || !createModal.hidden) return;
     renderFilters();
     renderFeed();
   });
+
+  // Запускаем загрузку
+  loadDataAndRender();
 })();

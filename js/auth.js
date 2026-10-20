@@ -1,55 +1,38 @@
 /* ============================================================
-   auth.js — авторизация и профиль через Supabase
+   auth.js — авторизация, посты, комменты, реакции (Supabase)
    ============================================================ */
 
 (function () {
-  // Глобальные переменные для кэша текущего пользователя
   let currentUser = null;
   let currentProfile = null;
   let authResolved = false;
 
-  /* ============ ИНИЦИАЛИЗАЦИЯ И СЛУШАТЕЛЬ ============ */
-
-  // Проверяем, загрузился ли Supabase
+  /* ============ ИНИЦИАЛИЗАЦИЯ ============ */
   if (window.supabase && window.supabase.auth) {
-    // Слушаем изменения авторизации (вход, выход, обновление токена)
     window.supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // Если есть сессия, подгружаем профиль пользователя из таблицы profiles
-        const { data, error } = await window.supabase
+        const { data } = await window.supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
-
-        if (!error && data) {
-          currentUser = session.user;
-          currentProfile = data;
-        }
+        currentUser = session.user;
+        currentProfile = data;
       } else {
-        // Если сессии нет — разлогиниваем
         currentUser = null;
         currentProfile = null;
       }
-
       authResolved = true;
       emitChange();
       renderAuthSlot();
     });
   } else {
-    // Если Supabase не загрузился (например, блокировка сети)
-    console.warn(
-      "Supabase не загружен. Проверьте подключение скриптов в HTML.",
-    );
-    authResolved = true; // Разрешаем отрисовку интерфейса
+    authResolved = true;
     setTimeout(renderAuthSlot, 0);
   }
 
-  // Получить текущего пользователя (синхронно, из кэша)
   function getCurrentUser() {
     if (!currentProfile) return null;
-
-    // Возвращаем объект, совместимый со старым форматом сайта
     return {
       id: currentProfile.id,
       username: currentProfile.username,
@@ -58,112 +41,140 @@
       bio: currentProfile.bio || "",
       avatar: currentProfile.avatar_url || "",
       banned: currentProfile.banned_until ? true : false,
-      banUntil: currentProfile.banned_until,
-      banReason: currentProfile.ban_reason,
       createdAt: currentProfile.created_at,
     };
   }
 
-  /* ============ РЕГИСТРАЦИЯ / ВХОД ============ */
-
-  async function register({ username, email, password, passwordConfirm }) {
-    if (!username || username.length < 3)
-      return { ok: false, error: "Логин — минимум 3 символа" };
-    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
-      return { ok: false, error: "Некорректная почта" };
-    if (!password || password.length < 6)
-      return { ok: false, error: "Пароль — минимум 6 символов" };
-    if (password !== passwordConfirm)
-      return { ok: false, error: "Пароли не совпадают" };
-
-    // 1. Создаем пользователя в Auth
+  /* ============ АВТОРИЗАЦИЯ ============ */
+  async function register({ username, email, password }) {
     const { data, error } = await window.supabase.auth.signUp({
-      email: email,
-      password: password,
+      email,
+      password,
     });
+    if (error)
+      return {
+        ok: false,
+        error: error.message.includes("already")
+          ? "Почта занята"
+          : error.message,
+      };
 
-    if (error) {
-      if (error.message.includes("already registered")) {
-        return { ok: false, error: "Эта почта уже зарегистрирована" };
-      }
-      return { ok: false, error: error.message };
-    }
-
-    // 2. Создаем профиль в базе
     const { error: profileError } = await window.supabase
       .from("profiles")
-      .insert({
-        id: data.user.id,
-        username: username,
-        role: "user",
-      });
-
-    if (profileError) {
-      if (profileError.code === "23505") {
-        return { ok: false, error: "Такой логин уже занят" };
-      }
-      return { ok: false, error: profileError.message };
-    }
-
-    return { ok: true, user: data.user };
+      .insert({ id: data.user.id, username });
+    if (profileError) return { ok: false, error: "Ник уже занят" };
+    return { ok: true };
   }
 
   async function login({ email, password }) {
-    if (!email || !password) return { ok: false, error: "Заполни все поля" };
-
-    const { data, error } = await window.supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+    const { error } = await window.supabase.auth.signInWithPassword({
+      email,
+      password,
     });
-
-    if (error) {
-      return { ok: false, error: "Неверная почта или пароль" };
-    }
-
-    return { ok: true, user: data.user };
+    if (error) return { ok: false, error: "Неверная почта или пароль" };
+    return { ok: true };
   }
 
   async function logout() {
     await window.supabase.auth.signOut();
   }
 
-  /* ============ ПРОФИЛЬ ============ */
+  /* ============ ПОСТЫ ============ */
+  async function getAllPosts() {
+    const { data } = await window.supabase
+      .from("posts")
+      .select("*, profiles(username, avatar_url)")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
 
-  function getUserByUsername(username) {
-    // Пока это заглушка, работает только если профили загружены
-    return null;
+    // Преобразуем структуру из базы в формат, который ждет твой старый код
+    return (data || []).map((p) => ({
+      id: p.id,
+      title: p.title,
+      body: p.body,
+      excerpt: p.excerpt,
+      category: p.category,
+      tags: p.tags,
+      image: p.image_url,
+      views: p.views,
+      date: p.created_at,
+      isCustom: true,
+      author: {
+        name: p.profiles?.username || "Unknown",
+        avatar: p.profiles?.avatar_url || "",
+      },
+    }));
   }
 
-  function getUserById(id) {
-    // Заглушка
-    return null;
-  }
-
-  async function updateProfile(id, { bio, avatar }) {
-    const updates = {};
-    if (typeof bio === "string") updates.bio = bio;
-    if (typeof avatar === "string") updates.avatar_url = avatar;
-
-    const { error } = await window.supabase
-      .from("profiles")
-      .update(updates)
-      .eq("id", id);
-
+  async function addCustomPost({ title, excerpt, body, category, tags }) {
+    const { error } = await window.supabase.from("posts").insert({
+      author_id: currentProfile.id,
+      title,
+      excerpt,
+      body,
+      category,
+      tags,
+    });
     if (error) return { ok: false, error: error.message };
-
-    // Обновляем локальный кэш
-    if (currentProfile) {
-      currentProfile.bio = updates.bio || currentProfile.bio;
-      currentProfile.avatar_url =
-        updates.avatar_url || currentProfile.avatar_url;
-    }
-    emitChange();
     return { ok: true };
   }
 
-  /* ============ ЗАГЛУШКИ ДЛЯ СТАРОГО КОДА ============ */
-  // Эти функции мы перепишем, когда будем переводить посты и комменты на базу.
+  /* ============ КОММЕНТАРИИ ============ */
+  async function listComments(postId) {
+    const { data } = await window.supabase
+      .from("comments")
+      .select("*, profiles(username, avatar_url)")
+      .eq("post_id", postId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
 
+    return (data || []).map((c) => ({
+      id: c.id,
+      postId: c.post_id,
+      parentId: c.parent_id,
+      text: c.body,
+      createdAt: new Date(c.created_at).getTime(),
+      authorId: c.author_id,
+      authorName: c.profiles?.username || "Unknown",
+      deleted: false,
+    }));
+  }
+
+  async function addComment(postId, text, parentId = null) {
+    if (!currentProfile) return { ok: false, error: "Войди в аккаунт" };
+
+    // Если postId начинается с "sug_", значит это комментарий к предложке
+    const isSuggestion = String(postId).startsWith("sug_");
+    const realId = isSuggestion ? postId.replace("sug_", "") : postId;
+
+    const { error } = await window.supabase.from("comments").insert({
+      author_id: currentProfile.id,
+      post_id: isSuggestion ? null : realId,
+      suggestion_id: isSuggestion ? realId : null,
+      parent_id: parentId,
+      body: text,
+    });
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  async function getCommentCount(postId) {
+    const isSuggestion = String(postId).startsWith("sug_");
+    const realId = isSuggestion ? postId.replace("sug_", "") : postId;
+
+    let query = window.supabase
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .is("deleted_at", null);
+    if (isSuggestion) query = query.eq("suggestion_id", realId);
+    else query = query.eq("post_id", realId);
+
+    const { count } = await query;
+    return count || 0;
+  }
+
+  /* ============ ЗАГЛУШКИ (чтобы старый код не падал) ============ */
   function isOwner(user) {
     return user?.role === "owner";
   }
@@ -183,44 +194,27 @@
     };
     return r[user.role] || "USER";
   }
-
   function isBanned(user) {
-    if (!user || !user.banned) return false;
-    if (!user.banUntil) return true;
-    return new Date(user.banUntil) > new Date();
-  }
+    return false;
+  } // Упрощенно
 
-  // Заглушки для постов/комментов, чтобы сайт не падал
-  function getCustomPosts() {
-    return [];
-  }
-  function getAllPosts() {
-    return typeof POSTS !== "undefined" ? POSTS : [];
-  }
   function getBookmarks() {
     return [];
   }
   function isBookmarked() {
     return false;
   }
-  function getComments() {
-    return [];
-  }
-  function getCommentCount() {
-    return 0;
+  function toggleBookmark() {
+    return { ok: false, error: "В разработке" };
   }
 
   const REPORT_REASONS = [
     { key: "spam", label: "Спам или реклама" },
     { key: "abuse", label: "Оскорбления / агрессия" },
-    { key: "nsfw", label: "Нецензурный контент" },
-    { key: "hate", label: "Разжигание ненависти" },
-    { key: "fake", label: "Обман / фейк" },
     { key: "other", label: "Другое" },
   ];
 
-  /* ============ НАВБАР И МОДАЛКА ВХОДА ============ */
-
+  /* ============ НАВБАР И UI ============ */
   function escapeHTMLForSlot(str) {
     return String(str)
       .replace(/&/g, "&amp;")
@@ -228,35 +222,16 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
-
   function emitChange() {
     window.dispatchEvent(new CustomEvent("auth:change"));
   }
 
   function renderAuthSlot() {
     let slot = document.getElementById("nav-auth");
-    if (!slot) {
-      const navRight = document.querySelector(".nav-right");
-      if (!navRight) return;
-      slot = navRight.querySelector(".nav-auth");
-      if (!slot) {
-        slot = document.createElement("div");
-        slot.className = "nav-auth";
-        navRight.appendChild(slot);
-      }
-    }
+    if (!slot) return;
 
-    // Если Supabase молчит (сеть заблокирована), показываем кнопку через 2 секунды
     if (!authResolved) {
-      setTimeout(() => {
-        if (!authResolved) {
-          console.warn(
-            "Supabase не ответил, показываем кнопку Войти принудительно.",
-          );
-          authResolved = true;
-          renderAuthSlot();
-        }
-      }, 2000);
+      setTimeout(renderAuthSlot, 1000);
       return;
     }
 
@@ -265,11 +240,6 @@
     if (!user) {
       slot.innerHTML = `
         <button class="auth-btn" id="open-auth">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
           <span class="auth-btn-text">Войти</span>
         </button>
       `;
@@ -280,55 +250,16 @@
     }
 
     const letter = (user.username || "?").charAt(0).toUpperCase();
-    const staff = isStaff(user);
-    const roleLabel = getRoleLabel(user);
-
     slot.innerHTML = `
       <div class="user-menu" id="user-menu">
         <button class="user-menu-btn" id="user-menu-toggle">
-          <span class="user-avatar">
-            ${user.avatar ? '<img src="' + escapeHTMLForSlot(user.avatar) + '" alt="" />' : letter}
-          </span>
+          <span class="user-avatar">${user.avatar ? '<img src="' + escapeHTMLForSlot(user.avatar) + '" />' : letter}</span>
           <span class="user-name">${escapeHTMLForSlot(user.username)}</span>
-          <svg class="caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
         </button>
         <div class="user-dropdown">
-          <div class="menu-head">
-            <span class="menu-username">${escapeHTMLForSlot(user.username)}</span>
-            <span class="menu-role">${escapeHTMLForSlot(roleLabel)}</span>
-          </div>
-
-          <a href="profile.html">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-            Мой профиль
-          </a>
-
-          ${
-            staff
-              ? `
-            <a href="admin.html">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
-              </svg>
-              Панель админа
-            </a>
-          `
-              : ""
-          }
-
-          <button class="danger" id="logout-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-            Выйти
-          </button>
+          <a href="profile.html">Мой профиль</a>
+          ${isStaff(user) ? `<a href="admin.html">Панель админа</a>` : ""}
+          <button class="danger" id="logout-btn">Выйти</button>
         </div>
       </div>
     `;
@@ -339,18 +270,12 @@
       menu.classList.toggle("open");
     });
     document.addEventListener("click", () => menu.classList.remove("open"));
-    menu.addEventListener("click", (e) => e.stopPropagation());
-
-    slot.querySelector("#logout-btn").addEventListener("click", async () => {
-      await logout();
-      menu.classList.remove("open");
-    });
+    slot.querySelector("#logout-btn").addEventListener("click", () => logout());
   }
 
   function ensureModal() {
     let modal = document.getElementById("auth-modal");
     if (modal) return modal;
-
     modal = document.createElement("div");
     modal.id = "auth-modal";
     modal.className = "auth-modal";
@@ -358,18 +283,14 @@
     modal.innerHTML = `
       <div class="auth-backdrop" data-close></div>
       <div class="auth-window">
-        <button class="auth-close" data-close aria-label="Закрыть">×</button>
+        <button class="auth-close" data-close>×</button>
         <div class="auth-body" id="auth-body"></div>
       </div>
     `;
     document.body.appendChild(modal);
-
     modal
       .querySelectorAll("[data-close]")
       .forEach((el) => el.addEventListener("click", closeAuth));
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.hidden) closeAuth();
-    });
     return modal;
   }
 
@@ -378,112 +299,70 @@
     renderAuthView(view);
     modal.hidden = false;
     requestAnimationFrame(() => modal.classList.add("open"));
-    document.body.style.overflow = "hidden";
   }
-
   function closeAuth() {
     const modal = document.getElementById("auth-modal");
-    if (!modal) return;
-    modal.classList.remove("open");
-    document.body.style.overflow = "";
-    setTimeout(() => {
-      modal.hidden = true;
-    }, 250);
+    if (modal) {
+      modal.classList.remove("open");
+      setTimeout(() => (modal.hidden = true), 250);
+    }
   }
 
   function renderAuthView(view) {
     const body = document.getElementById("auth-body");
-    if (!body) return;
-
-    if (view === "login") body.innerHTML = viewLogin();
-    if (view === "register") body.innerHTML = viewRegister();
-
-    const msg = body.querySelector("#auth-msg");
-    function showMsg(type, text) {
-      if (!msg) return;
-      msg.className = "auth-msg show " + type;
-      msg.textContent = text;
-    }
+    body.innerHTML = view === "login" ? viewLogin() : viewRegister();
 
     body.querySelectorAll("[data-view]").forEach((btn) => {
       btn.addEventListener("click", () => renderAuthView(btn.dataset.view));
     });
 
-    const loginForm = body.querySelector("#login-form");
-    if (loginForm) {
-      loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const fd = new FormData(loginForm);
-        const btn = loginForm.querySelector("button[type=submit]");
-        btn.disabled = true;
-        btn.textContent = "Входим...";
+    const form = body.querySelector("form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true;
+      btn.textContent = "Загрузка...";
 
-        const res = await login({
-          email: fd.get("email").trim(),
+      let res;
+      if (view === "login") {
+        res = await login({
+          email: fd.get("email"),
           password: fd.get("password"),
         });
-
-        if (!res.ok) {
-          btn.disabled = false;
-          btn.textContent = "Войти";
-          return showMsg("error", res.error);
-        }
-
-        showMsg("success", "Успешный вход!");
-        setTimeout(() => closeAuth(), 500);
-      });
-    }
-
-    const regForm = body.querySelector("#register-form");
-    if (regForm) {
-      regForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const fd = new FormData(regForm);
-        const btn = regForm.querySelector("button[type=submit]");
-        btn.disabled = true;
-        btn.textContent = "Создаем...";
-
-        const res = await register({
-          username: fd.get("username").trim(),
-          email: fd.get("email").trim(),
-          password: fd.get("password"),
-          passwordConfirm: fd.get("passwordConfirm"),
-        });
-
-        if (!res.ok) {
-          btn.disabled = false;
-          btn.textContent = "Отправить заявку";
-          return showMsg("error", res.error);
-        }
-
-        showMsg("success", "Аккаунт создан! Входим...");
-        await login({
-          email: fd.get("email").trim(),
+      } else {
+        res = await register({
+          username: fd.get("username"),
+          email: fd.get("email"),
           password: fd.get("password"),
         });
-        setTimeout(() => closeAuth(), 800);
-      });
-    }
+        if (res.ok)
+          await login({ email: fd.get("email"), password: fd.get("password") });
+      }
+
+      if (!res.ok) {
+        btn.disabled = false;
+        btn.textContent = view === "login" ? "Войти" : "Зарегистрироваться";
+        const msg = body.querySelector("#auth-msg");
+        msg.className = "auth-msg show error";
+        msg.textContent = res.error;
+      } else {
+        closeAuth();
+      }
+    });
   }
 
   function viewLogin() {
     return `
-      <h2 class="auth-title">С возвращением</h2>
-      <p class="auth-subtitle">Войди, чтобы писать посты и общаться.</p>
+      <h2 class="auth-title">Вход</h2>
       <div class="auth-tabs">
         <button class="auth-tab active" data-view="login">Вход</button>
         <button class="auth-tab" data-view="register">Регистрация</button>
       </div>
       <div class="auth-msg" id="auth-msg"></div>
-      <form class="auth-form" id="login-form">
-        <div class="field">
-          <label>Почта</label>
-          <input type="email" name="email" placeholder="you@example.com" required />
-        </div>
-        <div class="field">
-          <label>Пароль</label>
-          <input type="password" name="password" placeholder="••••••••" required />
-        </div>
+      <form class="auth-form">
+        <div class="field"><label>Почта</label><input type="email" name="email" required /></div>
+        <div class="field"><label>Пароль</label><input type="password" name="password" required /></div>
         <button type="submit" class="auth-submit">Войти</button>
       </form>
     `;
@@ -491,60 +370,43 @@
 
   function viewRegister() {
     return `
-      <h2 class="auth-title">Создать аккаунт</h2>
-      <p class="auth-subtitle">Придумай уникальный ник и пароль.</p>
+      <h2 class="auth-title">Регистрация</h2>
       <div class="auth-tabs">
         <button class="auth-tab" data-view="login">Вход</button>
         <button class="auth-tab active" data-view="register">Регистрация</button>
       </div>
       <div class="auth-msg" id="auth-msg"></div>
-      <form class="auth-form" id="register-form">
-        <div class="field">
-          <label>Логин (Ник)</label>
-          <input type="text" name="username" placeholder="username" required minlength="3" />
-        </div>
-        <div class="field">
-          <label>Почта</label>
-          <input type="email" name="email" placeholder="you@example.com" required />
-        </div>
-        <div class="field">
-          <label>Пароль</label>
-          <input type="password" name="password" placeholder="Минимум 6 символов" required minlength="6" />
-        </div>
-        <div class="field">
-          <label>Подтверждение пароля</label>
-          <input type="password" name="passwordConfirm" placeholder="Повтори пароль" required minlength="6" />
-        </div>
+      <form class="auth-form">
+        <div class="field"><label>Ник</label><input type="text" name="username" required /></div>
+        <div class="field"><label>Почта</label><input type="email" name="email" required /></div>
+        <div class="field"><label>Пароль</label><input type="password" name="password" required minlength="6" /></div>
         <button type="submit" class="auth-submit">Зарегистрироваться</button>
       </form>
     `;
   }
-
-  /* ============ ЭКСПОРТ ============ */
 
   window.Auth = {
     getCurrentUser,
     register,
     login,
     logout,
-    updateProfile,
     isOwner,
     isAdmin,
     isStaff,
     getRoleLabel,
     isBanned,
-    getUserByUsername,
-    getUserById,
-    openAuth,
-    REPORT_REASONS,
-    // Заглушки
-    getCustomPosts,
     getAllPosts,
+    addCustomPost,
+    listComments,
+    addComment,
+    getCommentCount,
     getBookmarks,
     isBookmarked,
-    getComments,
-    getCommentCount,
+    toggleBookmark,
+    REPORT_REASONS,
+    openAuth,
   };
 
   window.addEventListener("auth:change", renderAuthSlot);
+  setTimeout(renderAuthSlot, 100);
 })();
