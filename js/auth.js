@@ -10,30 +10,40 @@
 
   /* ============ ИНИЦИАЛИЗАЦИЯ И СЛУШАТЕЛЬ ============ */
 
-  // Слушаем изменения авторизации (вход, выход, обновление токена)
-  window.supabase.auth.onAuthStateChange(async (event, session) => {
-    if (session) {
-      // Если есть сессия, подгружаем профиль пользователя из таблицы profiles
-      const { data, error } = await window.supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+  // Проверяем, загрузился ли Supabase
+  if (window.supabase && window.supabase.auth) {
+    // Слушаем изменения авторизации (вход, выход, обновление токена)
+    window.supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        // Если есть сессия, подгружаем профиль пользователя из таблицы profiles
+        const { data, error } = await window.supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
 
-      if (!error && data) {
-        currentUser = session.user;
-        currentProfile = data;
+        if (!error && data) {
+          currentUser = session.user;
+          currentProfile = data;
+        }
+      } else {
+        // Если сессии нет — разлогиниваем
+        currentUser = null;
+        currentProfile = null;
       }
-    } else {
-      // Если сессии нет — разлогиниваем
-      currentUser = null;
-      currentProfile = null;
-    }
 
-    authResolved = true;
-    emitChange();
-    renderAuthSlot();
-  });
+      authResolved = true;
+      emitChange();
+      renderAuthSlot();
+    });
+  } else {
+    // Если Supabase не загрузился (например, блокировка сети)
+    console.warn(
+      "Supabase не загружен. Проверьте подключение скриптов в HTML.",
+    );
+    authResolved = true; // Разрешаем отрисовку интерфейса
+    setTimeout(renderAuthSlot, 0);
+  }
 
   // Получить текущего пользователя (синхронно, из кэша)
   function getCurrentUser() {
@@ -120,7 +130,7 @@
   /* ============ ПРОФИЛЬ ============ */
 
   function getUserByUsername(username) {
-    // Пока это заглушка, работает только если профили загружены (мы это исправим позже)
+    // Пока это заглушка, работает только если профили загружены
     return null;
   }
 
@@ -152,7 +162,7 @@
   }
 
   /* ============ ЗАГЛУШКИ ДЛЯ СТАРОГО КОДА ============ */
-  // Эти функции мы перепишем на следующем шаге, когда будем переводить посты и комменты на базу.
+  // Эти функции мы перепишем, когда будем переводить посты и комменты на базу.
 
   function isOwner(user) {
     return user?.role === "owner";
@@ -236,7 +246,7 @@
       }
     }
 
-    // Если Supabase не ответил за 2 секунды, показываем кнопку "Войти" в любом случае
+    // Если Supabase молчит (сеть заблокирована), показываем кнопку через 2 секунды
     if (!authResolved) {
       setTimeout(() => {
         if (!authResolved) {
@@ -244,9 +254,9 @@
             "Supabase не ответил, показываем кнопку Войти принудительно.",
           );
           authResolved = true;
-          renderAuthSlot(); // Перерисовываем навбар
+          renderAuthSlot();
         }
-      }, 2000); // 2000 мс = 2 секунды
+      }, 2000);
       return;
     }
 
@@ -447,7 +457,6 @@
         }
 
         showMsg("success", "Аккаунт создан! Входим...");
-        // Автоматически входим после регистрации
         await login({
           email: fd.get("email").trim(),
           password: fd.get("password"),
@@ -526,7 +535,7 @@
     isBanned,
     getUserByUsername,
     getUserById,
-    openAuth, // Добавили, чтобы вызывать из других мест
+    openAuth,
     REPORT_REASONS,
     // Заглушки
     getCustomPosts,
@@ -537,6 +546,5 @@
     getCommentCount,
   };
 
-  // При старте проверяем сессию
   window.addEventListener("auth:change", renderAuthSlot);
 })();
