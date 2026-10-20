@@ -43,14 +43,24 @@
             <div class="cover-actions">
               <a href="posts.html" class="btn btn-primary btn-lg">
                 Читать посты
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
               </a>
-              <a href="suggestions.html" class="btn btn-ghost btn-lg">Предложить идею</a>
+              <a href="suggestions.html" class="btn btn-ghost btn-lg"
+                >Предложить идею</a
+              >
             </div>
 
             <div class="cover-stats" id="cover-stats"></div>
@@ -59,8 +69,15 @@
           <div class="cover-visual">
             <div class="cover-glow" aria-hidden="true"></div>
             <div class="cover-frame">
-              <video src="videos/hero.mp4" autoplay loop muted playsinline
-                     preload="auto" aria-hidden="true"></video>
+              <video
+                src="videos/hero.mp4"
+                autoplay
+                loop
+                muted
+                playsinline
+                preload="auto"
+                aria-hidden="true"
+              ></video>
             </div>
           </div>
         </div>
@@ -74,12 +91,26 @@
         </header>
 
         <div class="feature-grid">
-          <a href="posts.html" class="feature-card" style="--accent: var(--c-code)">
+          <a
+            href="posts.html"
+            class="feature-card"
+            style="--accent: var(--c-code)"
+          >
             <span class="feature-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                <path
+                  d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+                />
               </svg>
             </span>
             <h3>Посты</h3>
@@ -87,24 +118,53 @@
             <span class="feature-link">Открыть →</span>
           </a>
 
-          <a href="suggestions.html" class="feature-card" style="--accent: var(--c-story)">
+          <a
+            href="suggestions.html"
+            class="feature-card"
+            style="--accent: var(--c-story)"
+          >
             <span class="feature-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 18h6" /><path d="M10 22h4" />
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 18h6" />
+                <path d="M10 22h4" />
                 <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
               </svg>
             </span>
             <h3>Предложка</h3>
-            <p>Советуй фильмы, аниме, видео и новости. Лучшее попадёт в посты.</p>
+            <p>
+              Советуй фильмы, аниме, видео и новости. Лучшее попадёт в посты.
+            </p>
             <span class="feature-link">Предложить →</span>
           </a>
 
-          <a href="messages.html" class="feature-card" style="--accent: var(--c-game)">
+          <a
+            href="messages.html"
+            class="feature-card"
+            style="--accent: var(--c-game)"
+          >
             <span class="feature-icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                />
               </svg>
             </span>
             <h3>Сообщения</h3>
@@ -144,6 +204,8 @@
 
     <div id="site-footer"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
     <script src="js/layout.js"></script>
     <script src="js/main.js"></script>
     <script src="js/posts.js"></script>
