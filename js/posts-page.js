@@ -123,7 +123,7 @@
   }
   function avatarHTML(author) {
     if (author.avatar)
-      return `<img src="${author.avatar}" alt="" class="author-avatar" />`;
+      return `<img src="${escapeHTML(author.avatar)}" alt="" class="author-avatar" />`;
     const letter = (author.name || "?").charAt(0).toUpperCase();
     return `<span class="author-avatar author-avatar-letter">${letter}</span>`;
   }
@@ -133,8 +133,6 @@
     return me.username.toLowerCase() === (post.author.name || "").toLowerCase();
   }
   function commentCount(postId) {
-    // Пока возвращаем 0, так как комментарии подгружаются внутри модалки
-    // В идеале нужно добавить count в getAllPosts, но для простоты пока так
     return 0;
   }
 
@@ -215,7 +213,8 @@
 
         <h3 class="post-title">${escapeHTML(post.title)}</h3>
 
-        ${post.image ? `<div class="post-image"><img src="${post.image}" alt="" loading="lazy" /></div>` : ""}
+        <!-- ЭКРАНИРУЕМ КАРТИНКУ ДЛЯ БЕЗОПАСНОСТИ -->
+        ${post.image ? `<div class="post-image"><img src="${escapeHTML(post.image)}" alt="" loading="lazy" /></div>` : ""}
 
         <p class="post-excerpt">${escapeHTML(post.excerpt)}</p>
 
@@ -331,7 +330,9 @@
           e.target.closest(".tag")
         )
           return;
-        const post = cachedPosts.find((p) => p.id === card.dataset.id);
+        const post = cachedPosts.find(
+          (p) => String(p.id) === String(card.dataset.id),
+        );
         if (post) openModal(post);
       });
     });
@@ -369,12 +370,14 @@
     feedEl.querySelectorAll(".post-report-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const post = cachedPosts.find((p) => p.id === btn.dataset.report);
+        const post = cachedPosts.find(
+          (p) => String(p.id) === String(btn.dataset.report),
+        );
         if (!post || !window.ReportModal) return;
         window.ReportModal.open({
           type: "post",
           targetId: post.id,
-          targetUserId: post.author_id,
+          targetUserId: post.author_id, // Убедись, что в getAllPosts мы возвращаем author_id
           targetTitle: post.title,
         });
       });
@@ -450,9 +453,11 @@
 
       <h2 class="modal-title">${escapeHTML(post.title)}</h2>
 
-      ${post.image ? `<div class="modal-image"><img src="${post.image}" alt="" /></div>` : ""}
+      <!-- ЭКРАНИРУЕМ КАРТИНКУ ДЛЯ БЕЗОПАСНОСТИ -->
+      ${post.image ? `<div class="modal-image"><img src="${escapeHTML(post.image)}" alt="" /></div>` : ""}
 
-      <div class="modal-text">${post.body}</div>
+      <!-- ЗАЩИТА ОТ XSS: DOMPurify.sanitize ОЧИЩАЕТ HTML ОТ ОПАСНЫХ СКРИПТОВ -->
+      <div class="modal-text">${DOMPurify.sanitize(post.body)}</div>
 
       ${
         post.tags && post.tags.length
@@ -491,7 +496,7 @@
     modalBody.querySelectorAll(".react-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         setReaction(post.id, btn.dataset.react);
-        const fresh = cachedPosts.find((p) => p.id === post.id);
+        const fresh = cachedPosts.find((p) => String(p.id) === String(post.id));
         if (!fresh) return;
         const cc = getCounts(fresh);
         modalBody.querySelectorAll(".react-btn").forEach((b) => {
@@ -511,7 +516,9 @@
 
     modalBody.querySelectorAll("[data-report-modal]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const p = cachedPosts.find((x) => x.id === btn.dataset.reportModal);
+        const p = cachedPosts.find(
+          (x) => String(x.id) === String(btn.dataset.reportModal),
+        );
         if (!p || !window.ReportModal) return;
         window.ReportModal.open({
           type: "post",
@@ -725,7 +732,9 @@
 
       setTimeout(() => {
         closeEditModal();
-        const updated = cachedPosts.find((p) => p.id === editingPostId);
+        const updated = cachedPosts.find(
+          (p) => String(p.id) === String(editingPostId),
+        );
         if (updated) openModal(updated);
         if (window.Toast) window.Toast.success("Пост обновлён");
         submitBtn.disabled = false;

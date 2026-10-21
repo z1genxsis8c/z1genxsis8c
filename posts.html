@@ -118,10 +118,8 @@
         </button>
         <div class="modal-body" style="padding-top: 30px">
           <h2 class="modal-title" style="margin-bottom: 20px">Новый пост</h2>
-
           <form id="create-post-form" class="auth-form" style="gap: 16px">
             <div class="auth-msg" id="post-msg"></div>
-
             <div class="field">
               <label>Заголовок *</label>
               <input
@@ -132,7 +130,6 @@
                 maxlength="100"
               />
             </div>
-
             <div class="field">
               <label>Категория</label>
               <select name="category" class="modal-form-select">
@@ -141,7 +138,6 @@
                 <option value="game">Игра</option>
               </select>
             </div>
-
             <div class="field">
               <label>Теги (через запятую)</label>
               <input
@@ -150,17 +146,15 @@
                 placeholder="javascript, cs2, мысли"
               />
             </div>
-
             <div class="field">
               <label>Краткое описание (для карточки)</label>
               <input
                 type="text"
                 name="excerpt"
-                placeholder="Пара слов для превью (если пусто, возьмётся начало текста)"
+                placeholder="Пара слов для превью"
                 maxlength="200"
               />
             </div>
-
             <div class="field">
               <label>Текст поста *</label>
               <textarea
@@ -171,7 +165,6 @@
                 placeholder="Пиши здесь..."
               ></textarea>
             </div>
-
             <div class="edit-post-actions">
               <button type="submit" class="auth-submit">Опубликовать</button>
               <button type="button" class="btn-cancel" id="save-draft-btn">
@@ -194,10 +187,8 @@
           <h2 class="modal-title" style="margin-bottom: 20px">
             Редактировать пост
           </h2>
-
           <form id="edit-post-form" class="auth-form" style="gap: 16px">
             <div class="auth-msg" id="edit-post-msg"></div>
-
             <div class="field">
               <label>Заголовок *</label>
               <input
@@ -208,7 +199,6 @@
                 maxlength="100"
               />
             </div>
-
             <div class="field">
               <label>Категория</label>
               <select name="category" class="modal-form-select">
@@ -217,7 +207,6 @@
                 <option value="game">Игра</option>
               </select>
             </div>
-
             <div class="field">
               <label>Теги (через запятую)</label>
               <input
@@ -226,17 +215,15 @@
                 placeholder="javascript, cs2, мысли"
               />
             </div>
-
             <div class="field">
               <label>Краткое описание (для карточки)</label>
               <input
                 type="text"
                 name="excerpt"
-                placeholder="Пара слов для превью (если пусто, возьмётся начало текста)"
+                placeholder="Пара слов для превью"
                 maxlength="200"
               />
             </div>
-
             <div class="field">
               <label>Текст поста *</label>
               <textarea
@@ -247,7 +234,6 @@
                 placeholder="Пиши здесь..."
               ></textarea>
             </div>
-
             <div class="edit-post-actions">
               <button type="submit" class="auth-submit">Сохранить</button>
               <button type="button" class="btn-cancel" id="cancel-edit-post">
@@ -270,6 +256,10 @@
     <script src="js/toast.js"></script>
     <script src="js/report-modal.js"></script>
     <script src="js/comments.js"></script>
+
+    <!-- ДОБАВЛЕНО: Защита от взлома через скрипты (XSS) -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+
     <script src="js/posts-page.js"></script>
   </body>
 </html>
